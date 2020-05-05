@@ -14,7 +14,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 
 namespace Voiceroid2Sharp
 {
@@ -33,13 +32,13 @@ namespace Voiceroid2Sharp
 		}
 
 		/// <summary>アクティブなボイロ を取得、設定</summary>
-		private ObservableSynchronizedCollection<Voiceroid2Entity> activeVoiceroid_;
+		private ObservableSynchronizedCollection<Voiceroid2Entity> activeVoiceroids_;
 		/// <summary>アクティブなボイロ を取得、設定</summary>
-		public ObservableSynchronizedCollection<Voiceroid2Entity> ActiveVoiceroid
+		public ObservableSynchronizedCollection<Voiceroid2Entity> ActiveVoiceroids
 		{
-			get => this.activeVoiceroid_;
+			get => this.activeVoiceroids_;
 
-			set => this.SetProperty(ref this.activeVoiceroid_, value);
+			set => this.SetProperty(ref this.activeVoiceroids_, value);
 		}
 		/// <summary>選択中のキャラ名 を取得、設定</summary>
 		private string charaName_;
@@ -52,13 +51,13 @@ namespace Voiceroid2Sharp
 		}
 
 		/// <summary>つながっているかどうか を取得、設定</summary>
-		private bool isConnectVoiceroid2_;
+		private bool isv2Connected_;
 		/// <summary>つながっているかどうか を取得、設定</summary>
-		public bool IsV2Connect
+		public bool IsV2Connected
 		{
-			get => this.isConnectVoiceroid2_;
+			get => this.isv2Connected_;
 
-			set => this.SetProperty(ref this.isConnectVoiceroid2_, value);
+			set => this.SetProperty(ref this.isv2Connected_, value);
 		}
 
 		/// <summary>読み上げ予定のテキスト集 を取得、設定</summary>
@@ -72,14 +71,15 @@ namespace Voiceroid2Sharp
 		}
 
 		/// <summary><see cref="AppVar"> を取得、設定</summary>
-		private AppVar statusLabel;
+		private AppVar statusLabel_;
 		/// <summary><see cref="AppVar"> を取得、設定</summary>
 		public AppVar StatusLabel
 		{
-			get => this.statusLabel;
+			get => this.statusLabel_;
 
-			set => this.SetProperty(ref this.statusLabel, value);
+			set => this.SetProperty(ref this.statusLabel_, value);
 		}
+
 		/// <summary>話し中かどうか を取得、設定</summary>
 		public bool IsTalking => !this.StatusLabel.ToString().Contains("テキストの読み上げは完了しました。");
 		#endregion
@@ -87,6 +87,7 @@ namespace Voiceroid2Sharp
 		#region // パブリックイベント
 		public event Action<string> FindVoiceroidProcess;
 		public event Action<string> UnFindVoiceroidProcess;
+		public event Action<string> OnExitVoiceroid2;
 		#endregion
 		//ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
 		#region // コマンド用メソッド
@@ -103,13 +104,13 @@ namespace Voiceroid2Sharp
 		public void ConnectV2(bool autoStart = false)
 		{
 			if (!File.Exists(VOICEROID2PATH)) {
-				this.IsV2Connect = false;
+				this.IsV2Connected = false;
 				this.UnFindVoiceroidProcess?.Invoke("VOICEROID2がインストールされていません。");
 				return;
 			}
 
-			if (!this.ActiveVoiceroid.Any()) {
-				this.CreateVoiceroidActiveCollection();
+			if (!this.ActiveVoiceroids.Any()) {
+				this.CreateActiveVoiceroidCollection();
 			}
 
 			var retrycount = 0;
@@ -117,23 +118,22 @@ namespace Voiceroid2Sharp
 			var voiceroidProcess = Process.GetProcessesByName("VoiceroidEditor");
 			Debug.WriteLine("VoiceroidEditor Length:" + voiceroidProcess.Length.ToString());
 			if (voiceroidProcess.Any()) {
-				while (retrycount < MAXRETRYCOUNT && !this.IsV2Connect) {
+				while (retrycount < MAXRETRYCOUNT && !this.IsV2Connected) {
 					Thread.Sleep(3000);
 					this.AttachV2Editer(voiceroidProcess[0]);
 					retrycount++;
 				}
-
 			}
 			else if (autoStart) {
 				var p = this.StartV2();
-				while (retrycount < MAXRETRYCOUNT && !this.IsV2Connect) {
+				while (retrycount < MAXRETRYCOUNT && !this.IsV2Connected) {
 					Thread.Sleep(3000);
 					this.AttachV2Editer(p);
 					retrycount++;
 				}
 			}
 
-			if (this.IsV2Connect) {
+			if (this.IsV2Connected) {
 				this.Messages.Add("VOICEROID2と接続しました。");
 				this.FindVoiceroidProcess?.Invoke("VOICEROID2と接続しました。");
 			}
@@ -145,9 +145,9 @@ namespace Voiceroid2Sharp
 		/// <summary>
 		/// インストールされているボイスロイドコレクションを作成します。
 		/// </summary>
-		public void CreateVoiceroidActiveCollection()
+		public void CreateActiveVoiceroidCollection()
 		{
-			this.ActiveVoiceroid.Clear();
+			this.ActiveVoiceroids.Clear();
 			var voicePath = Path.Combine(INSTALLFOLDERPATH, "Voice");
 			if (Directory.Exists(voicePath)) {
 				var directories = Directory.EnumerateDirectories(voicePath);
@@ -157,12 +157,12 @@ namespace Voiceroid2Sharp
 				foreach (var directory in directories) {
 					var directoryInfo = new DirectoryInfo(directory);
 					if (this.VOICEROIDS.ContainsKey(directoryInfo.Name)) {
-						this.ActiveVoiceroid.Add(new Voiceroid2Entity() { CharaName = this.VOICEROIDS[directoryInfo.Name] });
+						this.ActiveVoiceroids.Add(new Voiceroid2Entity() { CharaName = this.VOICEROIDS[directoryInfo.Name] });
 					}
 				}
 			}
-			if (this.ActiveVoiceroid.Any()) {
-				this.CharaName = this.ActiveVoiceroid[0].CharaName;
+			if (this.ActiveVoiceroids.Any()) {
+				this.CharaName = this.ActiveVoiceroids[0].CharaName;
 			}
 		}
 		#endregion
@@ -177,10 +177,11 @@ namespace Voiceroid2Sharp
 		{
 			Debug.WriteLine("VOICEROID2終了を検出");
 			this.voiceroidEditer_.Dispose();
-			this.IsV2Connect = false;
+			this.IsV2Connected = false;
 			this.uiTreeTop_ = null;
 			this.talkTextBox_ = null;
 			this.playButton_ = null;
+			this.OnExitVoiceroid2?.Invoke("VOICEROID2が終了しました。");
 		}
 
 		/// <summary>
@@ -203,18 +204,16 @@ namespace Voiceroid2Sharp
 				}
 				lastPlay = DateTime.Now;
 				var readingTarget = this.Messages[0];
-				foreach (var activeViceroid in this.ActiveVoiceroid.Where(x => !string.IsNullOrEmpty(x.Command))) {
+				foreach (var activeViceroid in this.ActiveVoiceroids.Where(x => !string.IsNullOrEmpty(x.Command))) {
 					if (readingTarget.Contains(activeViceroid.Command)) {
-						var text = this.Messages[0].Replace(activeViceroid.Command, "");
-						this.talkTextBox_.EmulateChangeText($"{activeViceroid.CharaName}＞{text}");
+						var replacedTarget = readingTarget.Replace(activeViceroid.Command, "");
+						this.talkTextBox_.EmulateChangeText($"{activeViceroid.CharaName}＞{replacedTarget}");
 						this.playButton_.EmulateClick();
-
-						this.Messages.RemoveAt(0);
+						this.Messages.Remove(readingTarget);
 						return;
 					}
 				}
 				this.talkTextBox_.EmulateChangeText($"{this.CharaName}＞{readingTarget}");
-
 				this.playButton_.EmulateClick();
 				this.Messages.Remove(readingTarget);
 			});
@@ -227,7 +226,7 @@ namespace Voiceroid2Sharp
 		/// <param name="e">イベント<see cref="NotifyCollectionChangedEventArgs"/></param>
 		private void OnMessageCollectionChenged(object sender, NotifyCollectionChangedEventArgs e)
 		{
-			if (e.Action == NotifyCollectionChangedAction.Remove || !this.IsV2Connect) {
+			if (e.Action == NotifyCollectionChangedAction.Remove || !this.IsV2Connected) {
 				return;
 			}
 			this.Talking();
@@ -240,7 +239,7 @@ namespace Voiceroid2Sharp
 		/// <param name="vProcess">VOICEROID2の<see cref="Process"/></param>
 		private void AttachV2Editer(Process vProcess)
 		{
-			this.IsV2Connect = false;
+			this.IsV2Connected = false;
 			this.voiceroidProcess_ = vProcess;
 			this.voiceroidProcess_.Exited += this.OnV2Exit;
 
@@ -281,7 +280,7 @@ namespace Voiceroid2Sharp
 					}
 				}
 				Debug.WriteLine("-------------------------------------------------------");
-				this.IsV2Connect = true;
+				this.IsV2Connected = true;
 				return;
 			}
 			catch (Exception e) {
@@ -305,13 +304,7 @@ namespace Voiceroid2Sharp
 		}
 		#endregion
 		//ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
-		#region // プライベートクラス
-		#endregion
-		//ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
 		#region // メンバ変数
-		//private BouyomiDictionary dictionary_ = BouyomiDictionary.Current;
-
-
 		private static string INSTALLFOLDERPATH = @"C:\Program Files (x86)\AHS\VOICEROID2";
 		private static string VOICEROID2PATH = @"C:\Program Files (x86)\AHS\VOICEROID2\VoiceroidEditor.exe";
 		private static string TALKEDITERVIEWNAME = "AI.Talk.Editor.TextEditView";
@@ -325,11 +318,9 @@ namespace Voiceroid2Sharp
 		#endregion
 		//ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
 		#region // 構築・破棄
-		
-		#endregion
 		public Voiceroid2Sharp()
-        {
-			this.ActiveVoiceroid = new ObservableSynchronizedCollection<Voiceroid2Entity>();
+		{
+			this.ActiveVoiceroids = new ObservableSynchronizedCollection<Voiceroid2Entity>();
 
 			this.VOICEROIDS = new Dictionary<string, string>();
 
@@ -362,5 +353,7 @@ namespace Voiceroid2Sharp
 			this.Messages = new ObservableSynchronizedCollection<string>();
 			this.Messages.CollectionChanged += this.OnMessageCollectionChenged;
 		}
-    }
+		#endregion
+
+	}
 }
