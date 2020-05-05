@@ -8,7 +8,7 @@ namespace Voiceroid2Sharp
 {
     public class Voiceroid2Entity : BindableBase
     {
-        // <summary>キャラクター名 を取得、設定</summary>
+        /// <summary>キャラクター名 を取得、設定</summary>
         private string charaName_;
         /// <summary>キャラクター名 を取得、設定</summary>
         public string CharaName

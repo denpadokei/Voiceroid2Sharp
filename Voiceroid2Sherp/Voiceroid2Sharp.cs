@@ -70,6 +70,16 @@ namespace Voiceroid2Sharp
 			set => this.SetProperty(ref this.messages_, value);
 		}
 
+		/// <summary>最後に喋った日時 を取得、設定</summary>
+		private DateTime lastPlay_;
+		/// <summary>最後に喋った日時 を取得、設定</summary>
+		public DateTime LastPlay
+		{
+			get => this.lastPlay_;
+
+			set => this.SetProperty(ref this.lastPlay_, value);
+		}
+
 		/// <summary><see cref="AppVar"> を取得、設定</summary>
 		private AppVar statusLabel_;
 		/// <summary><see cref="AppVar"> を取得、設定</summary>
@@ -81,7 +91,7 @@ namespace Voiceroid2Sharp
 		}
 
 		/// <summary>話し中かどうか を取得、設定</summary>
-		public bool IsTalking => !this.StatusLabel.ToString().Contains("テキストの読み上げは完了しました。");
+		public bool IsTalking => !this.beginButton_.IsEnabled;
 		#endregion
 		//ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
 		#region // パブリックイベント
@@ -181,6 +191,7 @@ namespace Voiceroid2Sharp
 			this.uiTreeTop_ = null;
 			this.talkTextBox_ = null;
 			this.playButton_ = null;
+			this.beginButton_ = null;
 			this.OnExitVoiceroid2?.Invoke("VOICEROID2が終了しました。");
 		}
 
@@ -193,26 +204,26 @@ namespace Voiceroid2Sharp
 		{
 			await Task.Run(() =>
 			{
-				var lastPlay = DateTime.Now;
 				var talkCooldown = TimeSpan.FromSeconds(0.3);
-				while (this.IsTalking) {
-					Thread.Sleep(50); // spin wait
-				}
 				var now = DateTime.Now;
-				if ((now - lastPlay) < talkCooldown) {
-					Thread.Sleep(talkCooldown - (now - lastPlay));
+				if ((now - this.LastPlay) < talkCooldown) {
+					Thread.Sleep(talkCooldown - (now - this.LastPlay));
 				}
-				lastPlay = DateTime.Now;
 				var readingTarget = this.Messages[0];
+				while (this.IsTalking) {
+					Thread.Sleep(300); // spin wait
+				}
 				foreach (var activeViceroid in this.ActiveVoiceroids.Where(x => !string.IsNullOrEmpty(x.Command))) {
 					if (readingTarget.Contains(activeViceroid.Command)) {
 						var replacedTarget = readingTarget.Replace(activeViceroid.Command, "");
+						this.LastPlay = DateTime.Now;
 						this.talkTextBox_.EmulateChangeText($"{activeViceroid.CharaName}＞{replacedTarget}");
 						this.playButton_.EmulateClick();
 						this.Messages.Remove(readingTarget);
 						return;
 					}
 				}
+				this.LastPlay = DateTime.Now;
 				this.talkTextBox_.EmulateChangeText($"{this.CharaName}＞{readingTarget}");
 				this.playButton_.EmulateClick();
 				this.Messages.Remove(readingTarget);
@@ -259,33 +270,15 @@ namespace Voiceroid2Sharp
 
 				this.talkTextBox_ = new WPFTextBox(textViewCollection[4]);
 				this.playButton_ = new WPFButtonBase(textViewCollection[6]);
+				this.beginButton_ = new WPFButtonBase(textViewCollection[15]);
+				this.LastPlay = DateTime.Now;
 				this.talkTextBox_.EmulateChangeText("起動準備中、しばらくお待ちください。");
 				this.playButton_.EmulateClick();
 
-				var mainViewCollection = this.uiTreeTop_.GetFromTypeFullName(MAINWINDOWNAME)[0].LogicalTree(TreeRunDirection.Descendants);
-				Debug.WriteLine("-------------------------------------------------------");
-
-				for (int i = 0; i < mainViewCollection.Count; i++) {
-					try {
-						if (mainViewCollection[i].ToString().Contains("読み上げ")) {
-							Debug.WriteLine($"アイテムID{i}");
-							Debug.WriteLine($"{mainViewCollection[i]}");
-							this.StatusLabel = mainViewCollection[i];
-							break;
-						}
-					}
-					catch (Exception e) {
-						Debug.WriteLine(e);
-						break;
-					}
-				}
-				Debug.WriteLine("-------------------------------------------------------");
 				this.IsV2Connected = true;
-				return;
 			}
 			catch (Exception e) {
 				Debug.WriteLine(e);
-				return;
 			}
 		}
 
@@ -315,6 +308,7 @@ namespace Voiceroid2Sharp
 		private WindowControl uiTreeTop_;
 		private WPFTextBox talkTextBox_;
 		private WPFButtonBase playButton_;
+		private WPFButtonBase beginButton_;
 		#endregion
 		//ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
 		#region // 構築・破棄
@@ -354,6 +348,5 @@ namespace Voiceroid2Sharp
 			this.Messages.CollectionChanged += this.OnMessageCollectionChenged;
 		}
 		#endregion
-
 	}
 }
