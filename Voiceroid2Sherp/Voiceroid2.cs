@@ -16,6 +16,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace Voiceroid2Sharp
 {
@@ -112,6 +113,16 @@ namespace Voiceroid2Sharp
 			private set => this.SetProperty(ref this.statusLabel_, value);
 		}
 
+		/// <summary>テキストビューコレクション を取得、設定</summary>
+		private IWPFDependencyObjectCollection<DependencyObject> textViewCollection_;
+		/// <summary>テキストビューコレクション を取得、設定</summary>
+		public IWPFDependencyObjectCollection<DependencyObject> TextViewCollextion
+		{
+			get => this.textViewCollection_;
+
+			private set => this.SetProperty(ref this.textViewCollection_, value);
+		}
+
 		/// <summary>話し中かどうか を取得、設定</summary>
 		public bool IsTalking => !this.beginButton_.IsEnabled;
 		#endregion
@@ -169,6 +180,11 @@ namespace Voiceroid2Sharp
 					this.AttachV2Editer(p);
 					Thread.Sleep(3000);
 					retrycount++;
+					if (!this.IsV2Connected) {
+						p.Refresh();
+						p.Dispose();
+						p = Process.GetProcessesByName("VoiceroidEditor").FirstOrDefault();
+					}
 				}
 			}
 
@@ -221,6 +237,7 @@ namespace Voiceroid2Sharp
 			this.talkTextBox_ = null;
 			this.playButton_ = null;
 			this.beginButton_ = null;
+			this.TextViewCollextion = null;
 			this.OnExitVoiceroid2?.Invoke("VOICEROID2が終了しました。");
 		}
 
@@ -287,23 +304,23 @@ namespace Voiceroid2Sharp
 				this.voiceroidEditer_ = new WindowsAppFriend(this.voiceroidProcess_);
 				this.uiTreeTop_ = WindowControl.FromZTop(this.voiceroidEditer_);
 
-				var textViewCollection = this.uiTreeTop_.GetFromTypeFullName(TALKEDITERVIEWNAME)[0].LogicalTree(TreeRunDirection.Descendants);
+				this.TextViewCollextion = this.uiTreeTop_.GetFromTypeFullName(TALKEDITERVIEWNAME)[0].LogicalTree(TreeRunDirection.Descendants);
 
-				if (textViewCollection.Count < 15) {
+				if (this.TextViewCollextion.Count < 15) {
 					return;
 				}
 #if DEBUG
 				Debug.WriteLine("-----------------------------------------------");
-				for (int i = 0; i < textViewCollection.Count; i++) {
+				for (int i = 0; i < this.TextViewCollextion.Count; i++) {
 					Debug.WriteLine($"アイテムID:{i}");
-					Debug.WriteLine($"{textViewCollection[i]}");
+					Debug.WriteLine($"{this.TextViewCollextion[i]}");
 				}
 				Debug.WriteLine("-----------------------------------------------");
 #endif
 
-				this.talkTextBox_ = new WPFTextBox(textViewCollection[4]);
-				this.playButton_ = new WPFButtonBase(textViewCollection[6]);
-				this.beginButton_ = new WPFButtonBase(textViewCollection[15]);
+				this.talkTextBox_ = new WPFTextBox(this.textViewCollection_[4]);
+				this.playButton_ = new WPFButtonBase(this.TextViewCollextion[6]);
+				this.beginButton_ = new WPFButtonBase(this.TextViewCollextion[15]);
 				this.LastPlay = DateTime.Now;
 				this.talkTextBox_.EmulateChangeText("起動準備中、しばらくお待ちください。");
 				this.playButton_.EmulateClick();
