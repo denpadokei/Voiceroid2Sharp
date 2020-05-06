@@ -7,13 +7,14 @@ namespace Voiceroid2Sharp.Test
 {
     public class Tests
     {
-        private Voiceroid2Sharp voiceroid2Sharp_;
+        private Voiceroid2 voiceroid2Sharp_;
 
         [SetUp]
         public void Setup()
         {
-            this.voiceroid2Sharp_ = new Voiceroid2Sharp();
+            this.voiceroid2Sharp_ = new Voiceroid2();
             this.voiceroid2Sharp_.ConnectV2(true);
+            Thread.Sleep(5000);
         }
 
         [Test]
@@ -24,7 +25,8 @@ namespace Voiceroid2Sharp.Test
             }
 
             for (int i = 0; i < 100; i++) {
-                this.voiceroid2Sharp_.Messages.Add($"コメントその{i}");
+                this.voiceroid2Sharp_.Message = $"コメントその{i}";
+                Thread.Sleep(1000);
             }
         }
     }

@@ -6,8 +6,10 @@ using Prism.Mvvm;
 using RM.Friendly.WPFStandardControls;
 using StatefulModel;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -17,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace Voiceroid2Sharp
 {
-    public class Voiceroid2Sharp : BindableBase
+    public class Voiceroid2 : BindableBase
     {
 		//ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
 		#region // プロパティ
@@ -60,14 +62,34 @@ namespace Voiceroid2Sharp
 			set => this.SetProperty(ref this.isv2Connected_, value);
 		}
 
+		/// <summary>テキスト を取得、設定</summary>
+		private string message_;
+		/// <summary>テキスト を取得、設定</summary>
+		public string Message
+		{
+			get => this.message_;
+
+			set => this.SetProperty(ref this.message_, value);
+		}
+
 		/// <summary>読み上げ予定のテキスト集 を取得、設定</summary>
-		private ObservableSynchronizedCollection<string> messages_;
+		private ObservableSynchronizedCollection<CommentEntity> messages_;
 		/// <summary>読み上げ予定のテキスト集 を取得、設定</summary>
-		public ObservableSynchronizedCollection<string> Messages
+		public ObservableSynchronizedCollection<CommentEntity> Messages
 		{
 			get => this.messages_;
 
 			set => this.SetProperty(ref this.messages_, value);
+		}
+
+		/// <summary>コメントキュー を取得、設定</summary>
+		private SortedObservableCollection<CommentEntity, DateTime> sortedMessages_;
+		/// <summary>コメントキュー を取得、設定</summary>
+		public SortedObservableCollection<CommentEntity, DateTime> SortedMessages
+		{
+			get => this.sortedMessages_;
+
+			set => this.SetProperty(ref this.sortedMessages_, value);
 		}
 
 		/// <summary>最後に喋った日時 を取得、設定</summary>
@@ -104,6 +126,13 @@ namespace Voiceroid2Sharp
 		#endregion
 		//ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
 		#region // オーバーライドメソッド
+		protected override void OnPropertyChanged(PropertyChangedEventArgs args)
+		{
+			base.OnPropertyChanged(args);
+			if (args.PropertyName == nameof(Message)) {
+				this.Messages.Add(new CommentEntity(Message = this.Message));
+			}
+		}
 		#endregion
 		//ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
 		#region // パブリックメソッド
@@ -144,7 +173,7 @@ namespace Voiceroid2Sharp
 			}
 
 			if (this.IsV2Connected) {
-				this.Messages.Add("VOICEROID2と接続しました。");
+				this.Messages.Add(new CommentEntity("VOICEROID2と接続しました。"));
 				this.FindVoiceroidProcess?.Invoke("VOICEROID2と接続しました。");
 			}
 			else {
@@ -200,7 +229,7 @@ namespace Voiceroid2Sharp
 		/// 読み上げるキャラは<see cref="this.CharaName"/>を参照します。
 		/// ただし、コマンドが入力されている場合はコマンドのキャラで読み上げます。
 		/// </summary>
-		private async void Talking()
+		private async void Talking(IList newItem)
 		{
 			await Task.Run(() =>
 			{
@@ -209,24 +238,25 @@ namespace Voiceroid2Sharp
 				if ((now - this.LastPlay) < talkCooldown) {
 					Thread.Sleep(talkCooldown - (now - this.LastPlay));
 				}
-				var readingTarget = this.Messages[0];
-				while (this.IsTalking) {
+				while (this.IsTalking && this.SortedMessages.IndexOf(newItem.OfType<CommentEntity>().FirstOrDefault()) != 0) {
 					Thread.Sleep(300); // spin wait
 				}
+				var commentEntity = this.SortedMessages[0];
+				var readingTarget = commentEntity.Message;
 				foreach (var activeViceroid in this.ActiveVoiceroids.Where(x => !string.IsNullOrEmpty(x.Command))) {
 					if (readingTarget.Contains(activeViceroid.Command)) {
 						var replacedTarget = readingTarget.Replace(activeViceroid.Command, "");
 						this.LastPlay = DateTime.Now;
 						this.talkTextBox_.EmulateChangeText($"{activeViceroid.CharaName}＞{replacedTarget}");
 						this.playButton_.EmulateClick();
-						this.Messages.Remove(readingTarget);
+						this.Messages.Remove(commentEntity);
 						return;
 					}
 				}
 				this.LastPlay = DateTime.Now;
 				this.talkTextBox_.EmulateChangeText($"{this.CharaName}＞{readingTarget}");
 				this.playButton_.EmulateClick();
-				this.Messages.Remove(readingTarget);
+				this.Messages.Remove(commentEntity);
 			});
 		}
 
@@ -240,7 +270,7 @@ namespace Voiceroid2Sharp
 			if (e.Action == NotifyCollectionChangedAction.Remove || !this.IsV2Connected) {
 				return;
 			}
-			this.Talking();
+			this.Talking(e.NewItems);
 
 		}
 
@@ -263,10 +293,14 @@ namespace Voiceroid2Sharp
 				if (textViewCollection.Count < 15) {
 					return;
 				}
-
-				if (string.IsNullOrEmpty(textViewCollection[4].ToString())) {
-					return;
+#if DEBUG
+				Debug.WriteLine("-----------------------------------------------");
+				for (int i = 0; i < textViewCollection.Count; i++) {
+					Debug.WriteLine($"アイテムID:{i}");
+					Debug.WriteLine($"{textViewCollection[i]}");
 				}
+				Debug.WriteLine("-----------------------------------------------");
+#endif
 
 				this.talkTextBox_ = new WPFTextBox(textViewCollection[4]);
 				this.playButton_ = new WPFButtonBase(textViewCollection[6]);
@@ -312,7 +346,7 @@ namespace Voiceroid2Sharp
 		#endregion
 		//ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
 		#region // 構築・破棄
-		public Voiceroid2Sharp()
+		public Voiceroid2()
 		{
 			this.ActiveVoiceroids = new ObservableSynchronizedCollection<Voiceroid2Entity>();
 
@@ -344,7 +378,9 @@ namespace Voiceroid2Sharp
 			this.VOICEROIDS.Add("sora_44", "桜乃そら");
 
 
-			this.Messages = new ObservableSynchronizedCollection<string>();
+			this.Messages = new ObservableSynchronizedCollection<CommentEntity>();
+			this.SortedMessages = this.Messages.ToSyncedSortedObservableCollection(key => key.SendDate);
+
 			this.Messages.CollectionChanged += this.OnMessageCollectionChenged;
 		}
 		#endregion
