@@ -250,30 +250,40 @@ namespace Voiceroid2Sharp
 		{
 			await Task.Run(() =>
 			{
-				var talkCooldown = TimeSpan.FromSeconds(0.3);
-				var now = DateTime.Now;
-				if ((now - this.LastPlay) < talkCooldown) {
-					Thread.Sleep(talkCooldown - (now - this.LastPlay));
-				}
-				while (this.IsTalking && this.SortedMessages.IndexOf(newItem.OfType<CommentEntity>().FirstOrDefault()) != 0) {
-					Thread.Sleep(300); // spin wait
-				}
-				var commentEntity = this.SortedMessages[0];
-				var readingTarget = commentEntity.Message;
-				foreach (var activeViceroid in this.ActiveVoiceroids.Where(x => !string.IsNullOrEmpty(x.Command))) {
-					if (readingTarget.Contains(activeViceroid.Command)) {
-						var replacedTarget = readingTarget.Replace(activeViceroid.Command, "");
-						this.LastPlay = DateTime.Now;
-						this.talkTextBox_.EmulateChangeText($"{activeViceroid.CharaName}＞{replacedTarget}");
-						this.playButton_.EmulateClick();
-						this.Messages.Remove(commentEntity);
-						return;
+				lock (this.lockObject_) {
+					var talkCooldown = TimeSpan.FromSeconds(0.3);
+					var now = DateTime.Now;
+					if ((now - this.LastPlay) < talkCooldown) {
+						Thread.Sleep(talkCooldown - (now - this.LastPlay));
 					}
+					while (this.IsTalking && this.SortedMessages.IndexOf(newItem.OfType<CommentEntity>().FirstOrDefault()) != 0) {
+						Thread.Sleep(300);
+					}
+					var commentEntity = this.SortedMessages[0];
+					var readingTarget = commentEntity.Message;
+					foreach (var activeViceroid in this.ActiveVoiceroids.Where(x => !string.IsNullOrEmpty(x.Command))) {
+						if (readingTarget.Contains(activeViceroid.Command)) {
+							var replacedTarget = readingTarget.Replace(activeViceroid.Command, "");
+							this.LastPlay = DateTime.Now;
+							this.talkTextBox_.EmulateChangeText($"{activeViceroid.CharaName}＞{replacedTarget}");
+							this.playButton_.EmulateClick();
+							Thread.Sleep(300);
+							while (this.IsTalking) {
+								Thread.Sleep(500);
+							}
+							this.Messages.Remove(commentEntity);
+							return;
+						}
+					}
+					this.LastPlay = DateTime.Now;
+					this.talkTextBox_.EmulateChangeText($"{this.CharaName}＞{readingTarget}");
+					this.playButton_.EmulateClick();
+					Thread.Sleep(300);
+					while (this.IsTalking) {
+						Thread.Sleep(500);
+					}
+					this.Messages.Remove(commentEntity);
 				}
-				this.LastPlay = DateTime.Now;
-				this.talkTextBox_.EmulateChangeText($"{this.CharaName}＞{readingTarget}");
-				this.playButton_.EmulateClick();
-				this.Messages.Remove(commentEntity);
 			});
 		}
 
@@ -353,6 +363,7 @@ namespace Voiceroid2Sharp
 		private static string TALKEDITERVIEWNAME = "AI.Talk.Editor.TextEditView";
 		private static string MAINWINDOWNAME = "AI.Talk.Editor.MainWindow";
 		private static int MAXRETRYCOUNT = 5;
+		private readonly object lockObject_ = new object();
 		private WindowsAppFriend voiceroidEditer_;
 		private Process voiceroidProcess_;
 		private WindowControl uiTreeTop_;

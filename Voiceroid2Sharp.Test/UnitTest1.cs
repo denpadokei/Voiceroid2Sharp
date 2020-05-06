@@ -29,7 +29,6 @@ namespace Voiceroid2Sharp.Test
 
             for (int i = 0; i < 100; i++) {
                 this.voiceroid2Sharp_.Message = $"ƒRƒƒ“ƒg‚»‚Ì{i}";
-                Thread.Sleep(1000);
             }
         }
 
