@@ -59,7 +59,7 @@ namespace Voiceroid2Sharp
 		{
 			get => this.isv2Connected_;
 
-			set => this.SetProperty(ref this.isv2Connected_, value);
+			private set => this.SetProperty(ref this.isv2Connected_, value);
 		}
 
 		/// <summary>テキスト を取得、設定</summary>
@@ -79,7 +79,7 @@ namespace Voiceroid2Sharp
 		{
 			get => this.messages_;
 
-			set => this.SetProperty(ref this.messages_, value);
+			private set => this.SetProperty(ref this.messages_, value);
 		}
 
 		/// <summary>コメントキュー を取得、設定</summary>
@@ -89,7 +89,7 @@ namespace Voiceroid2Sharp
 		{
 			get => this.sortedMessages_;
 
-			set => this.SetProperty(ref this.sortedMessages_, value);
+			private set => this.SetProperty(ref this.sortedMessages_, value);
 		}
 
 		/// <summary>最後に喋った日時 を取得、設定</summary>
@@ -99,7 +99,7 @@ namespace Voiceroid2Sharp
 		{
 			get => this.lastPlay_;
 
-			set => this.SetProperty(ref this.lastPlay_, value);
+			private set => this.SetProperty(ref this.lastPlay_, value);
 		}
 
 		/// <summary><see cref="AppVar"> を取得、設定</summary>
@@ -109,7 +109,7 @@ namespace Voiceroid2Sharp
 		{
 			get => this.statusLabel_;
 
-			set => this.SetProperty(ref this.statusLabel_, value);
+			private set => this.SetProperty(ref this.statusLabel_, value);
 		}
 
 		/// <summary>話し中かどうか を取得、設定</summary>
@@ -129,8 +129,8 @@ namespace Voiceroid2Sharp
 		protected override void OnPropertyChanged(PropertyChangedEventArgs args)
 		{
 			base.OnPropertyChanged(args);
-			if (args.PropertyName == nameof(Message)) {
-				this.Messages.Add(new CommentEntity(Message = this.Message));
+			if (args.PropertyName == nameof(this.Message)) {
+				this.Messages.Add(new CommentEntity(this.Message));
 			}
 		}
 		#endregion
