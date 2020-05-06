@@ -72,9 +72,9 @@ namespace Voiceroid2Sharp
 			set => this.SetProperty(ref this.message_, value);
 		}
 
-		/// <summary>読み上げ予定のテキスト集 を取得、設定</summary>
+		/// <summary>読み上げ予定のメッセージ集 を取得、設定</summary>
 		private ObservableSynchronizedCollection<CommentEntity> messages_;
-		/// <summary>読み上げ予定のテキスト集 を取得、設定</summary>
+		/// <summary>読み上げ予定のメッセージ集 を取得、設定</summary>
 		public ObservableSynchronizedCollection<CommentEntity> Messages
 		{
 			get => this.messages_;
@@ -158,22 +158,22 @@ namespace Voiceroid2Sharp
 			Debug.WriteLine("VoiceroidEditor Length:" + voiceroidProcess.Length.ToString());
 			if (voiceroidProcess.Any()) {
 				while (retrycount < MAXRETRYCOUNT && !this.IsV2Connected) {
-					Thread.Sleep(3000);
 					this.AttachV2Editer(voiceroidProcess[0]);
+					Thread.Sleep(3000);
 					retrycount++;
 				}
 			}
 			else if (autoStart) {
 				var p = this.StartV2();
 				while (retrycount < MAXRETRYCOUNT && !this.IsV2Connected) {
-					Thread.Sleep(3000);
 					this.AttachV2Editer(p);
+					Thread.Sleep(3000);
 					retrycount++;
 				}
 			}
 
 			if (this.IsV2Connected) {
-				this.Messages.Add(new CommentEntity("VOICEROID2と接続しました。"));
+				this.Message = "VOICEROID2と接続しました。";
 				this.FindVoiceroidProcess?.Invoke("VOICEROID2と接続しました。");
 			}
 			else {
@@ -271,7 +271,6 @@ namespace Voiceroid2Sharp
 				return;
 			}
 			this.Talking(e.NewItems);
-
 		}
 
 		/// <summary>
@@ -336,7 +335,7 @@ namespace Voiceroid2Sharp
 		private static string VOICEROID2PATH = @"C:\Program Files (x86)\AHS\VOICEROID2\VoiceroidEditor.exe";
 		private static string TALKEDITERVIEWNAME = "AI.Talk.Editor.TextEditView";
 		private static string MAINWINDOWNAME = "AI.Talk.Editor.MainWindow";
-		private static int MAXRETRYCOUNT = 3;
+		private static int MAXRETRYCOUNT = 5;
 		private WindowsAppFriend voiceroidEditer_;
 		private Process voiceroidProcess_;
 		private WindowControl uiTreeTop_;
