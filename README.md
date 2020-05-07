@@ -20,7 +20,7 @@ ActiveVoiceroidsの中のCommandにコマンドを登録してあげることで
 '
 
 public class Tests
-    {
+{
         private Voiceroid2 voiceroid2Sharp_;
 
         [SetUp]
@@ -68,5 +68,6 @@ public class Tests
             }
         }
     }
+}
 
 '
