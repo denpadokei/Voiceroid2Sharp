@@ -24,7 +24,7 @@ ActiveVoiceroidsの中のCommandにコマンドを登録してあげることで
                 var voiceroid2 = new Voiceroid2();
                 voiceroid2.V2Connect(true);
                 
-                while (!this.voiceroid2Sharp_.IsV2Connected) {
+                while (!voiceroid2.IsV2Connected) {
                         Thread.Sleep(1000);
                 }
                 for (int i = 0; i < 100; i++) {
