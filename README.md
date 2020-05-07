@@ -28,9 +28,9 @@ ActiveVoiceroidsの中のCommandにコマンドを登録してあげることで
                         Thread.Sleep(1000);
                 }
                 for (int i = 0; i < 100; i++) {
-                this.voiceroid2Sharp_.Message = $"コメントその{i}";
+                voiceroid2.Message = $"コメントその{i}";
                 }
-                while (this.voiceroid2Sharp_.Messages.Any() || this.voiceroid2Sharp_.IsTalking) {
+                while (this.voiceroid2Sharp_.Messages.Any() || voiceroid2.IsTalking) {
                 Thread.Sleep(500);
                 }
                 Console.WriteLine(this.voiceroid2Sharp_.Log);
