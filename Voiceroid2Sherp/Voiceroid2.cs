@@ -388,11 +388,11 @@ namespace Voiceroid2Sharp
 		#endregion
 		//ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
 		#region // メンバ変数
-		private static string INSTALLFOLDERPATH = @"C:\Program Files (x86)\AHS\VOICEROID2";
-		private static string VOICEROID2PATH = @"C:\Program Files (x86)\AHS\VOICEROID2\VoiceroidEditor.exe";
-		private static string TALKEDITERVIEWNAME = "AI.Talk.Editor.TextEditView";
-		private static string MAINWINDOWNAME = "AI.Talk.Editor.MainWindow";
-		private static int MAXRETRYCOUNT = 5;
+		private static readonly string INSTALLFOLDERPATH = @"C:\Program Files (x86)\AHS\VOICEROID2";
+		private static readonly string VOICEROID2PATH = @"C:\Program Files (x86)\AHS\VOICEROID2\VoiceroidEditor.exe";
+		private static readonly string TALKEDITERVIEWNAME = "AI.Talk.Editor.TextEditView";
+		private static readonly string MAINWINDOWNAME = "AI.Talk.Editor.MainWindow";
+		private static readonly int MAXRETRYCOUNT = 5;
 		private readonly object lockObject_ = new object();
 		private WindowsAppFriend voiceroidEditer_;
 		private Process voiceroidProcess_;
@@ -446,7 +446,7 @@ namespace Voiceroid2Sharp
 
 		protected virtual void Dispose(bool disposing)
 		{
-			if (!disposedValue) {
+			if (!this.disposedValue) {
 				if (disposing) {
 					// TODO: マネージ状態を破棄します (マネージ オブジェクト)。
 					this.voiceroidEditer_.Dispose();
@@ -456,7 +456,7 @@ namespace Voiceroid2Sharp
 				// TODO: アンマネージ リソース (アンマネージ オブジェクト) を解放し、下のファイナライザーをオーバーライドします。
 				// TODO: 大きなフィールドを null に設定します。
 
-				disposedValue = true;
+				this.disposedValue = true;
 			}
 		}
 
@@ -471,7 +471,7 @@ namespace Voiceroid2Sharp
 		public void Dispose()
 		{
 			// このコードを変更しないでください。クリーンアップ コードを上の Dispose(bool disposing) に記述します。
-			Dispose(true);
+			this.Dispose(true);
 			// TODO: 上のファイナライザーがオーバーライドされる場合は、次の行のコメントを解除してください。
 			// GC.SuppressFinalize(this);
 		}
