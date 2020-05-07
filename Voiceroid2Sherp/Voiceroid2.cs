@@ -14,6 +14,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -125,6 +126,16 @@ namespace Voiceroid2Sharp
 
 		/// <summary>話し中かどうか を取得、設定</summary>
 		public bool IsTalking => !this.beginButton_.IsEnabled;
+
+		/// <summary>発話した文字やその他ログ を取得、設定</summary>
+		private string log_;
+		/// <summary>発話した文字やその他ログ を取得、設定</summary>
+		public string Log
+		{
+			get => this.log_;
+
+			private set => this.SetProperty(ref this.log_, value);
+		}
 		#endregion
 		//ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
 		#region // パブリックイベント
@@ -155,6 +166,7 @@ namespace Voiceroid2Sharp
 		{
 			if (!File.Exists(VOICEROID2PATH)) {
 				this.IsV2Connected = false;
+				this.WriteLog("VOICEROID2がインストールされていません。");
 				this.UnFindVoiceroidProcess?.Invoke("VOICEROID2がインストールされていません。");
 				return;
 			}
@@ -238,6 +250,7 @@ namespace Voiceroid2Sharp
 			this.playButton_ = null;
 			this.beginButton_ = null;
 			this.TextViewCollextion = null;
+			this.WriteLog("VOICEROID2が終了しました。");
 			this.OnExitVoiceroid2?.Invoke("VOICEROID2が終了しました。");
 		}
 
@@ -266,6 +279,7 @@ namespace Voiceroid2Sharp
 							var replacedTarget = readingTarget.Replace(activeViceroid.Command, "");
 							this.LastPlay = DateTime.Now;
 							this.talkTextBox_.EmulateChangeText($"{activeViceroid.CharaName}＞{replacedTarget}");
+							this.WriteLog($"{activeViceroid.CharaName}＞{replacedTarget}");
 							this.playButton_.EmulateClick();
 							Thread.Sleep(300);
 							while (this.IsTalking) {
@@ -277,6 +291,7 @@ namespace Voiceroid2Sharp
 					}
 					this.LastPlay = DateTime.Now;
 					this.talkTextBox_.EmulateChangeText($"{this.CharaName}＞{readingTarget}");
+					this.WriteLog($"{this.CharaName}＞{readingTarget}");
 					this.playButton_.EmulateClick();
 					Thread.Sleep(300);
 					while (this.IsTalking) {
@@ -333,11 +348,16 @@ namespace Voiceroid2Sharp
 				this.beginButton_ = new WPFButtonBase(this.TextViewCollextion[15]);
 				this.LastPlay = DateTime.Now;
 				this.talkTextBox_.EmulateChangeText("起動準備中、しばらくお待ちください。");
+				this.WriteLog("起動準備中、しばらくお待ちください。");
 				this.playButton_.EmulateClick();
-
+				Thread.Sleep(300);
+				while (this.IsTalking) {
+					Thread.Sleep(500);
+				}
 				this.IsV2Connected = true;
 			}
 			catch (Exception e) {
+				this.WriteLog($"{e.Message}\n{e}");
 				Debug.WriteLine(e);
 			}
 		}
@@ -352,8 +372,18 @@ namespace Voiceroid2Sharp
 			p.StartInfo.FileName = VOICEROID2PATH;
 			p.Start();
 			p.WaitForInputIdle();
+			this.WriteLog("VOICEROID2を起動中です。");
 			Thread.Sleep(4000);
 			return p;
+		}
+
+		private void WriteLog(string log)
+		{
+			var builder = new StringBuilder();
+			builder.Append($"[{DateTime.Now:yyyy/MM/dd HH:mm:ss}]:{log}");
+			builder.Append("\n");
+			builder.Append($@"{this.Log}");
+			this.Log = $"{builder}";
 		}
 		#endregion
 		//ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*

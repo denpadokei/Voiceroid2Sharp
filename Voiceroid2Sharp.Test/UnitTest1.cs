@@ -3,6 +3,7 @@ using RM.Friendly.WPFStandardControls;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 
@@ -30,6 +31,10 @@ namespace Voiceroid2Sharp.Test
             for (int i = 0; i < 100; i++) {
                 this.voiceroid2Sharp_.Message = $"ƒRƒƒ“ƒg‚»‚Ì{i}";
             }
+            while (this.voiceroid2Sharp_.Messages.Any() || this.voiceroid2Sharp_.IsTalking) {
+                Thread.Sleep(500);
+            }
+            Console.WriteLine(this.voiceroid2Sharp_.Log);
         }
 
         [Test]
