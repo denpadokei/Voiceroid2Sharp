@@ -17,7 +17,8 @@ ActiveVoiceroidsの中のCommandにコマンドを登録してあげることで
 たまにバグります。
 
 ## サンプル
-'''
+'
+
 public class Tests
     {
         private Voiceroid2 voiceroid2Sharp_;
@@ -67,4 +68,5 @@ public class Tests
             }
         }
     }
-'''
+
+'
