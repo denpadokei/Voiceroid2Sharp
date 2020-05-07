@@ -28,6 +28,6 @@ ActiveVoiceroidsの中のCommandにコマンドを登録してあげることで
                         Thread.Sleep(1000);
                 }
                 for (int i = 0; i < 100; i++) {
-                voiceroid2.Message = $"コメントその{i}";
+                        voiceroid2.Message = $"コメントその{i}";
                 }
         }
