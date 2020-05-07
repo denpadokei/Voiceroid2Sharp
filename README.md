@@ -11,5 +11,7 @@ Messageに文字列を代入するか、MessagesにAddすると順番に読み�
 ## その他
 ActiveVoiceroidsの中のCommandにコマンドを登録してあげることで、Messagesを読み上げるキャラをメッセージごとに指定できます。
 
+また、VOICEROID2が32bitビルドのためこちらも32bitでビルドしないとうまく動きません。
+
 
 たまにバグります。
