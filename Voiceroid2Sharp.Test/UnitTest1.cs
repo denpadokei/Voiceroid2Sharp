@@ -34,7 +34,7 @@ namespace Voiceroid2Sharp.Test
         }
 
         [Test]
-        public async void StartV2()
+        public async Task StartV2()
         {
             await this.voiceroid2Sharp_.ConnectV2();
         }
