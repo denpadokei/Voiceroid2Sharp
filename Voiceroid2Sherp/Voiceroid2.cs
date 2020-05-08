@@ -185,6 +185,9 @@ namespace Voiceroid2Sharp
 				while (retrycount < MAXRETRYCOUNT && !this.IsV2Connected) {
 					await this.AttachV2Editer(voiceroidProcess[0]);
 					retrycount++;
+					if (!this.IsV2Connected) {
+						await Task.Delay(3000);
+					}
 				}
 			}
 			else if (autoStart) {
@@ -193,6 +196,7 @@ namespace Voiceroid2Sharp
 					await this.AttachV2Editer(p);
 					retrycount++;
 					if (!this.IsV2Connected) {
+						await Task.Delay(3000);
 						p.Refresh();
 						p.Dispose();
 						p = Process.GetProcessesByName("VoiceroidEditor").FirstOrDefault();
