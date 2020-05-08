@@ -136,6 +136,8 @@ namespace Voiceroid2Sharp
 
 			private set => this.SetProperty(ref this.log_, value);
 		}
+
+		public Process Voiceroid2Process => this.voiceroid2Process_;
 		#endregion
 		//ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
 		#region // パブリックイベント
@@ -162,7 +164,7 @@ namespace Voiceroid2Sharp
 		/// VOICEROID2と連携します。
 		/// </summary>
 		/// <param name="autoStart">プロセスが見つからないときに自動で起動するかどうか。規定値はfalse。</param>
-		public void ConnectV2(bool autoStart = false)
+		public async Task ConnectV2(bool autoStart = false)
 		{
 			if (!File.Exists(VOICEROID2PATH)) {
 				this.IsV2Connected = false;
@@ -181,16 +183,14 @@ namespace Voiceroid2Sharp
 			Debug.WriteLine("VoiceroidEditor Length:" + voiceroidProcess.Length.ToString());
 			if (voiceroidProcess.Any()) {
 				while (retrycount < MAXRETRYCOUNT && !this.IsV2Connected) {
-					this.AttachV2Editer(voiceroidProcess[0]);
-					Thread.Sleep(3000);
+					await this.AttachV2Editer(voiceroidProcess[0]);
 					retrycount++;
 				}
 			}
 			else if (autoStart) {
 				var p = this.StartV2();
 				while (retrycount < MAXRETRYCOUNT && !this.IsV2Connected) {
-					this.AttachV2Editer(p);
-					Thread.Sleep(3000);
+					await this.AttachV2Editer(p);
 					retrycount++;
 					if (!this.IsV2Connected) {
 						p.Refresh();
@@ -259,9 +259,9 @@ namespace Voiceroid2Sharp
 		/// 読み上げるキャラは<see cref="this.CharaName"/>を参照します。
 		/// ただし、コマンドが入力されている場合はコマンドのキャラで読み上げます。
 		/// </summary>
-		private async void Talking(IList newItem)
+		private Task TalkingAsync(IList newItem)
 		{
-			await Task.Run(() =>
+			return Task.Factory.StartNew(() =>
 			{
 				lock (this.lockObject_) {
 					var talkCooldown = TimeSpan.FromSeconds(0.3);
@@ -307,26 +307,26 @@ namespace Voiceroid2Sharp
 		/// </summary>
 		/// <param name="sender"><see cref="Messages"/></param>
 		/// <param name="e">イベント<see cref="NotifyCollectionChangedEventArgs"/></param>
-		private void OnMessageCollectionChenged(object sender, NotifyCollectionChangedEventArgs e)
+		private async void OnMessageCollectionChenged(object sender, NotifyCollectionChangedEventArgs e)
 		{
 			if (e.Action == NotifyCollectionChangedAction.Remove || !this.IsV2Connected) {
 				return;
 			}
-			this.Talking(e.NewItems);
+			await this.TalkingAsync(e.NewItems);
 		}
 
 		/// <summary>
 		/// VOICEROID2のプロセスからウインドウを取得します。
 		/// </summary>
 		/// <param name="vProcess">VOICEROID2の<see cref="Process"/></param>
-		private void AttachV2Editer(Process vProcess)
+		private async Task AttachV2Editer(Process vProcess)
 		{
 			this.IsV2Connected = false;
-			this.voiceroidProcess_ = vProcess;
-			this.voiceroidProcess_.Exited += this.OnV2Exit;
+			this.voiceroid2Process_ = vProcess;
+			this.voiceroid2Process_.Exited += this.OnV2Exit;
 
 			try {
-				this.voiceroidEditer_ = new WindowsAppFriend(this.voiceroidProcess_);
+				this.voiceroidEditer_ = new WindowsAppFriend(this.voiceroid2Process_);
 				this.uiTreeTop_ = WindowControl.FromZTop(this.voiceroidEditer_);
 
 				this.TextViewCollextion = this.uiTreeTop_.GetFromTypeFullName(TALKEDITERVIEWNAME)[0].LogicalTree(TreeRunDirection.Descendants);
@@ -350,9 +350,9 @@ namespace Voiceroid2Sharp
 				this.talkTextBox_.EmulateChangeText("起動準備中、しばらくお待ちください。");
 				this.WriteLog("起動準備中、しばらくお待ちください。");
 				this.playButton_.EmulateClick();
-				Thread.Sleep(300);
+				await Task.Delay(300);
 				while (this.IsTalking) {
-					Thread.Sleep(500);
+					await Task.Delay(500);
 				}
 				this.IsV2Connected = true;
 			}
@@ -395,7 +395,7 @@ namespace Voiceroid2Sharp
 		private static readonly int MAXRETRYCOUNT = 5;
 		private readonly object lockObject_ = new object();
 		private WindowsAppFriend voiceroidEditer_;
-		private Process voiceroidProcess_;
+		private Process voiceroid2Process_;
 		private WindowControl uiTreeTop_;
 		private WPFTextBox talkTextBox_;
 		private WPFButtonBase playButton_;
@@ -450,7 +450,7 @@ namespace Voiceroid2Sharp
 				if (disposing) {
 					// TODO: マネージ状態を破棄します (マネージ オブジェクト)。
 					this.voiceroidEditer_.Dispose();
-					this.voiceroidProcess_.Dispose();
+					this.voiceroid2Process_.Dispose();
 				}
 
 				// TODO: アンマネージ リソース (アンマネージ オブジェクト) を解放し、下のファイナライザーをオーバーライドします。
