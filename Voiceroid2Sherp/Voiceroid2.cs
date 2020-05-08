@@ -188,7 +188,7 @@ namespace Voiceroid2Sharp
 				}
 			}
 			else if (autoStart) {
-				var p = this.StartV2();
+				var p = await this.StartV2();
 				while (retrycount < MAXRETRYCOUNT && !this.IsV2Connected) {
 					await this.AttachV2Editer(p);
 					retrycount++;
@@ -366,14 +366,14 @@ namespace Voiceroid2Sharp
 		/// VOICEROID2を起動します。
 		/// </summary>
 		/// <returns>起動したVOICEROID2の<see cref="Process"/></returns>
-		private Process StartV2()
+		private async Task<Process> StartV2()
 		{
 			var p = new Process();
 			p.StartInfo.FileName = VOICEROID2PATH;
 			p.Start();
 			p.WaitForInputIdle();
 			this.WriteLog("VOICEROID2を起動中です。");
-			Thread.Sleep(4000);
+			await Task.Delay(4000);
 			return p;
 		}
 
