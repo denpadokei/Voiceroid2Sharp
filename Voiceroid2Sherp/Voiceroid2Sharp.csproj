@@ -9,6 +9,12 @@
     <RepositoryUrl>https://github.com/denpadokei/Voiceroid2Sharp</RepositoryUrl>
     <NeutralLanguage>ja</NeutralLanguage>
     <RepositoryType></RepositoryType>
+    <Version>1.0.1</Version>
+    <AssemblyVersion>1.0.2.0</AssemblyVersion>
+    <Authors>denpadokei</Authors>
+    <Product>Voiceroid2Sharp</Product>
+    <Description>VOICEROID2にテキストを送り再生ボタンを押すライブラリ</Description>
+    <FileVersion>1.0.2.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

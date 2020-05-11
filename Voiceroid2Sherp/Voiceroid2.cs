@@ -259,30 +259,36 @@ namespace Voiceroid2Sharp
 			try {
 				foreach (var commentEntity in newItems.OfType<CommentEntity>()) {
 					var readingTarget = commentEntity.Message;
-					foreach (var activeViceroid in this.ActiveVoiceroids.Where(x => !string.IsNullOrEmpty(x.Command))) {
-						if (readingTarget.Contains(activeViceroid.Command)) {
-							var replacedTarget = readingTarget.Replace(activeViceroid.Command, "");
-							this.LastPlay = DateTime.Now;
-							this.talkTextBox_.EmulateChangeText($"{activeViceroid.CharaName}＞{replacedTarget}");
-							this.WriteLog($"{activeViceroid.CharaName}＞{replacedTarget}");
-							this.playButton_.EmulateClick();
-							await Task.Delay(300);
-							while (this.IsTalking) {
-								await Task.Delay(500);
+					if (this.ActiveVoiceroids
+						.Where(x => !string.IsNullOrEmpty(x.Command))
+						.Any(x => readingTarget.Contains(x.Command))) {
+						foreach (var activeViceroid in this.ActiveVoiceroids.Where(x => !string.IsNullOrEmpty(x.Command))) {
+							if (readingTarget.Contains(activeViceroid.Command)) {
+								var replacedTarget = readingTarget.Replace(activeViceroid.Command, "");
+								this.LastPlay = DateTime.Now;
+								this.talkTextBox_.EmulateChangeText($"{activeViceroid.CharaName}＞{replacedTarget}");
+								this.WriteLog($"{activeViceroid.CharaName}＞{replacedTarget}");
+								this.playButton_.EmulateClick();
+								await Task.Delay(300);
+								while (this.IsTalking) {
+									await Task.Delay(500);
+								}
+								this.Messages.Remove(commentEntity);
+								continue;
 							}
-							this.Messages.Remove(commentEntity);
-							continue;
 						}
 					}
-					this.LastPlay = DateTime.Now;
-					this.talkTextBox_.EmulateChangeText($"{this.CharaName}＞{readingTarget}");
-					this.WriteLog($"{this.CharaName}＞{readingTarget}");
-					this.playButton_.EmulateClick();
-					await Task.Delay(300);
-					while (this.IsTalking) {
-						await Task.Delay(500);
+					else {
+						this.LastPlay = DateTime.Now;
+						this.talkTextBox_.EmulateChangeText($"{this.CharaName}＞{readingTarget}");
+						this.WriteLog($"{this.CharaName}＞{readingTarget}");
+						this.playButton_.EmulateClick();
+						await Task.Delay(300);
+						while (this.IsTalking) {
+							await Task.Delay(500);
+						}
+						this.Messages.Remove(commentEntity);
 					}
-					this.Messages.Remove(commentEntity);
 				}
 			}
 			catch (Exception e) {
@@ -303,7 +309,7 @@ namespace Voiceroid2Sharp
 			if (e.Action == NotifyCollectionChangedAction.Remove || !this.IsV2Connected) {
 				return;
 			}
-			_ = this.TalkingAsync(e.NewItems).ConfigureAwait(false);
+			var _ = this.TalkingAsync(e.NewItems);
 		}
 
 		/// <summary>
