@@ -32,7 +32,7 @@ namespace Voiceroid2Sharp
 		{
 			get => this.voiceroids_;
 
-			set => this.SetProperty(ref this.voiceroids_, value);
+			private set => this.SetProperty(ref this.voiceroids_, value);
 		}
 
 		/// <summary>アクティブなボイロ を取得、設定</summary>
@@ -42,7 +42,7 @@ namespace Voiceroid2Sharp
 		{
 			get => this.activeVoiceroids_;
 
-			set => this.SetProperty(ref this.activeVoiceroids_, value);
+			private set => this.SetProperty(ref this.activeVoiceroids_, value);
 		}
 		/// <summary>選択中のキャラ名 を取得、設定</summary>
 		private string charaName_;
@@ -102,16 +102,6 @@ namespace Voiceroid2Sharp
 			get => this.lastPlay_;
 
 			private set => this.SetProperty(ref this.lastPlay_, value);
-		}
-
-		/// <summary><see cref="AppVar"> を取得、設定</summary>
-		private AppVar statusLabel_;
-		/// <summary><see cref="AppVar"> を取得、設定</summary>
-		public AppVar StatusLabel
-		{
-			get => this.statusLabel_;
-
-			private set => this.SetProperty(ref this.statusLabel_, value);
 		}
 
 		/// <summary>テキストビューコレクション を取得、設定</summary>
@@ -263,20 +253,11 @@ namespace Voiceroid2Sharp
 		/// 読み上げるキャラは<see cref="this.CharaName"/>を参照します。
 		/// ただし、コマンドが入力されている場合はコマンドのキャラで読み上げます。
 		/// </summary>
-		private Task TalkingAsync(IList newItem)
+		private async Task TalkingAsync(IList newItems)
 		{
-			return Task.Factory.StartNew(() =>
-			{
-				lock (this.lockObject_) {
-					var talkCooldown = TimeSpan.FromSeconds(0.3);
-					var now = DateTime.Now;
-					if ((now - this.LastPlay) < talkCooldown) {
-						Thread.Sleep(talkCooldown - (now - this.LastPlay));
-					}
-					while (this.IsTalking && this.SortedMessages.IndexOf(newItem.OfType<CommentEntity>().FirstOrDefault()) != 0) {
-						Thread.Sleep(300);
-					}
-					var commentEntity = this.SortedMessages[0];
+			await this.semaphoreSlim_.WaitAsync();
+			try {
+				foreach (var commentEntity in newItems.OfType<CommentEntity>()) {
 					var readingTarget = commentEntity.Message;
 					foreach (var activeViceroid in this.ActiveVoiceroids.Where(x => !string.IsNullOrEmpty(x.Command))) {
 						if (readingTarget.Contains(activeViceroid.Command)) {
@@ -285,25 +266,31 @@ namespace Voiceroid2Sharp
 							this.talkTextBox_.EmulateChangeText($"{activeViceroid.CharaName}＞{replacedTarget}");
 							this.WriteLog($"{activeViceroid.CharaName}＞{replacedTarget}");
 							this.playButton_.EmulateClick();
-							Thread.Sleep(300);
+							await Task.Delay(300);
 							while (this.IsTalking) {
-								Thread.Sleep(500);
+								await Task.Delay(500);
 							}
 							this.Messages.Remove(commentEntity);
-							return;
+							continue;
 						}
 					}
 					this.LastPlay = DateTime.Now;
 					this.talkTextBox_.EmulateChangeText($"{this.CharaName}＞{readingTarget}");
 					this.WriteLog($"{this.CharaName}＞{readingTarget}");
 					this.playButton_.EmulateClick();
-					Thread.Sleep(300);
+					await Task.Delay(300);
 					while (this.IsTalking) {
-						Thread.Sleep(500);
+						await Task.Delay(500);
 					}
 					this.Messages.Remove(commentEntity);
 				}
-			});
+			}
+			catch (Exception e) {
+				Debug.WriteLine($"{e}");
+			}
+			finally {
+				this.semaphoreSlim_.Release();
+			}
 		}
 
 		/// <summary>
@@ -311,12 +298,12 @@ namespace Voiceroid2Sharp
 		/// </summary>
 		/// <param name="sender"><see cref="Messages"/></param>
 		/// <param name="e">イベント<see cref="NotifyCollectionChangedEventArgs"/></param>
-		private async void OnMessageCollectionChenged(object sender, NotifyCollectionChangedEventArgs e)
+		private void OnMessageCollectionChenged(object sender, NotifyCollectionChangedEventArgs e)
 		{
 			if (e.Action == NotifyCollectionChangedAction.Remove || !this.IsV2Connected) {
 				return;
 			}
-			await this.TalkingAsync(e.NewItems);
+			_ = this.TalkingAsync(e.NewItems).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -398,6 +385,8 @@ namespace Voiceroid2Sharp
 		private static readonly string MAINWINDOWNAME = "AI.Talk.Editor.MainWindow";
 		private static readonly int MAXRETRYCOUNT = 5;
 		private readonly object lockObject_ = new object();
+
+		private SemaphoreSlim semaphoreSlim_;
 		private WindowsAppFriend voiceroidEditer_;
 		private Process voiceroid2Process_;
 		private WindowControl uiTreeTop_;
@@ -443,6 +432,8 @@ namespace Voiceroid2Sharp
 			this.SortedMessages = this.Messages.ToSyncedSortedObservableCollection(key => key.SendDate);
 
 			this.Messages.CollectionChanged += this.OnMessageCollectionChenged;
+
+			this.semaphoreSlim_ = new SemaphoreSlim(1, 1);
 		}
 
 		#region IDisposable Support
@@ -453,6 +444,7 @@ namespace Voiceroid2Sharp
 			if (!this.disposedValue) {
 				if (disposing) {
 					// TODO: マネージ状態を破棄します (マネージ オブジェクト)。
+					this.semaphoreSlim_.Dispose();
 					this.voiceroidEditer_.Dispose();
 					this.voiceroid2Process_.Dispose();
 				}

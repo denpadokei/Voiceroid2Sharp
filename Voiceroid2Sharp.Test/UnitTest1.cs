@@ -24,7 +24,7 @@ namespace Voiceroid2Sharp.Test
         [Test]
         public async Task ReadOneHandredCommment()
         {
-            for (int i = 0; i < 100; i++) {
+            for (int i = 0; i < 10; i++) {
                 this.voiceroid2Sharp_.Message = $"ƒRƒƒ“ƒg‚»‚Ì{i}";
             }
             while (this.voiceroid2Sharp_.Messages.Any() || this.voiceroid2Sharp_.IsTalking) {
