@@ -15,6 +15,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -261,10 +262,11 @@ namespace Voiceroid2Sharp
 					var readingTarget = commentEntity.Message;
 					if (this.ActiveVoiceroids
 						.Where(x => !string.IsNullOrEmpty(x.Command))
-						.Any(x => readingTarget.Contains(x.Command))) {
+						.Any(x => Regex.IsMatch(readingTarget, $"^{x.Command.Replace(")", @"\)")}"))) {
 						foreach (var activeViceroid in this.ActiveVoiceroids.Where(x => !string.IsNullOrEmpty(x.Command))) {
-							if (readingTarget.Contains(activeViceroid.Command)) {
-								var replacedTarget = readingTarget.Replace(activeViceroid.Command, "");
+							var regex = new Regex($"^{activeViceroid.Command.Replace(")", @"\)")}");
+							if (regex.IsMatch(readingTarget)) {
+								var replacedTarget = regex.Replace(readingTarget, "");
 								this.LastPlay = DateTime.Now;
 								this.talkTextBox_.EmulateChangeText($"{activeViceroid.CharaName}＞{replacedTarget}");
 								this.WriteLog($"{activeViceroid.CharaName}＞{replacedTarget}");
@@ -274,7 +276,7 @@ namespace Voiceroid2Sharp
 									await Task.Delay(500);
 								}
 								this.Messages.Remove(commentEntity);
-								continue;
+								break;
 							}
 						}
 					}
