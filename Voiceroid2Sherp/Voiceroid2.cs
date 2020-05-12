@@ -272,6 +272,7 @@ namespace Voiceroid2Sharp
 								this.WriteLog($"{activeViceroid.CharaName}＞{replacedTarget}");
 								this.playButton_.EmulateClick();
 								await Task.Delay(300);
+								this.RaisePropertyChanged(nameof(this.IsTalking));
 								while (this.IsTalking) {
 									await Task.Delay(500);
 								}
@@ -286,6 +287,7 @@ namespace Voiceroid2Sharp
 						this.WriteLog($"{this.CharaName}＞{readingTarget}");
 						this.playButton_.EmulateClick();
 						await Task.Delay(300);
+						this.RaisePropertyChanged(nameof(this.IsTalking));
 						while (this.IsTalking) {
 							await Task.Delay(500);
 						}
@@ -297,6 +299,7 @@ namespace Voiceroid2Sharp
 				Debug.WriteLine($"{e}");
 			}
 			finally {
+				this.RaisePropertyChanged(nameof(this.IsTalking));
 				this.semaphoreSlim_.Release();
 			}
 		}
