@@ -27,8 +27,8 @@ namespace Voiceroid2Sharp.Test
             for (int i = 0; i < 100; i++) {
                 this.voiceroid2Sharp_.Message = $"ƒRƒƒ“ƒg‚»‚Ì{i}";
             }
-            while (this.voiceroid2Sharp_.Messages.Any() || this.voiceroid2Sharp_.IsTalking) {
-                Debug.WriteLine($"{this.voiceroid2Sharp_.IsOpen}");
+            while ((this.voiceroid2Sharp_.Messages.Any() || this.voiceroid2Sharp_.IsTalking) && this.voiceroid2Sharp_.IsOpen) {
+                Console.WriteLine($"isOpen : {this.voiceroid2Sharp_.IsOpen}");
                 await Task.Delay(500);
             }
             Console.WriteLine(this.voiceroid2Sharp_.Log);

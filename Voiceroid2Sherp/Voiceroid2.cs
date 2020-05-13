@@ -219,6 +219,7 @@ namespace Voiceroid2Sharp
 			}
 
 			if (this.IsV2Connected) {
+				this.Messages.Clear();
 				this.Message = "VOICEROID2と接続しました。";
 				this.FindVoiceroidProcess?.Invoke("VOICEROID2と接続しました。");
 			}
