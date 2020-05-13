@@ -120,10 +120,25 @@ namespace Voiceroid2Sharp
 		}
 
 		/// <summary>話し中かどうか を取得、設定</summary>
-		public bool IsTalking => this.beginButton_ != null ? !this.beginButton_.IsEnabled : false;
+		//public bool IsPlaying => this.beginButton_ != null ? !this.beginButton_.IsEnabled : false;
 		
 		/// <summary>開かれているかどうか を取得、設定</summary>
 		public bool IsOpen => Process.GetProcessesByName(this.Voiceroid2Process.ProcessName)[0].MainWindowHandle != IntPtr.Zero;
+
+		public bool IsPlaying
+		{
+			get
+			{
+				if (this.textEditer_ == null) {
+					return false;
+				}
+
+				var textEditer = this.textEditer_.Dynamic();
+				var context = textEditer.DataContext.IsPlaying;
+				bool isPlaying = context;
+				return isPlaying;
+			}
+		}
 
 		/// <summary>ダイアログID を取得、設定</summary>
 		private int dialogId_;
@@ -274,8 +289,7 @@ namespace Voiceroid2Sharp
 			}
 		}
 
-		[DllImport("user32.dll", CharSet = CharSet.Auto)]
-		static extern int ShowWindow(IntPtr hWnd, int nCmdShow);
+		
 		#endregion
 		//ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
 		#region // プライベートメソッド
@@ -295,7 +309,6 @@ namespace Voiceroid2Sharp
 						this.Messages.Remove(commentEntity);
 						return;
 					}
-					ShowWindow(this.Voiceroid2Process.MainWindowHandle, 4);
 					var readingTarget = commentEntity.Message;
 					if (this.ActiveVoiceroids
 						.Where(x => !string.IsNullOrEmpty(x.Command))
@@ -309,8 +322,8 @@ namespace Voiceroid2Sharp
 								this.WriteLog($"{activeViceroid.CharaName}＞{replacedTarget}");
 								this.playButton_.EmulateClick();
 								await Task.Delay(300);
-								this.RaisePropertyChanged(nameof(this.IsTalking));
-								while (this.IsTalking) {
+								this.RaisePropertyChanged(nameof(this.IsPlaying));
+								while (this.IsPlaying) {
 									if (this.IsOpen != true) {
 										break;
 									}
@@ -327,8 +340,8 @@ namespace Voiceroid2Sharp
 						this.WriteLog($"{this.CharaName}＞{readingTarget}");
 						this.playButton_.EmulateClick();
 						await Task.Delay(300);
-						this.RaisePropertyChanged(nameof(this.IsTalking));
-						while (this.IsTalking) {
+						this.RaisePropertyChanged(nameof(this.IsPlaying));
+						while (this.IsPlaying) {
 							if (this.IsOpen != true) {
 								break;
 							}
@@ -342,7 +355,7 @@ namespace Voiceroid2Sharp
 				Debug.WriteLine($"{e}");
 			}
 			finally {
-				this.RaisePropertyChanged(nameof(this.IsTalking));
+				this.RaisePropertyChanged(nameof(this.IsPlaying));
 				this.semaphoreSlim_.Release();
 			}
 		}
@@ -369,7 +382,7 @@ namespace Voiceroid2Sharp
 				this.voiceroidEditer_ = new WindowsAppFriend(this.voiceroid2Process_);
 				
 				this.uiTreeTop_ = new WindowControl(this.voiceroidEditer_, this.Voiceroid2Process.MainWindowHandle); //this.voiceroidEditer_.GetFromTypeFullName(MAINWINDOWNAME).First();
-				this.textEditer_ = this.uiTreeTop_.GetFromTypeFullName(TALKEDITERVIEWNAME).First();
+				this.textEditer_ = this.uiTreeTop_.GetFromTypeFullName(TALKEDITERVIEWNAME).Single();
 				this.TextViewCollextion = this.textEditer_.LogicalTree(TreeRunDirection.Descendants);
 
 				if (this.TextViewCollextion.Count < 15) {
