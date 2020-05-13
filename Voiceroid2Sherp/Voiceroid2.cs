@@ -26,8 +26,8 @@ using System.Windows.Threading;
 
 namespace Voiceroid2Sharp
 {
-    public class Voiceroid2 : BindableBase, IDisposable
-    {
+	public class Voiceroid2 : BindableBase, IDisposable
+	{
 		//ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
 		#region // プロパティ
 		/// <summary>ボイロ一覧 を取得、設定</summary>
@@ -121,7 +121,6 @@ namespace Voiceroid2Sharp
 
 		/// <summary>話し中かどうか を取得、設定</summary>
 		public bool IsTalking => this.beginButton_ != null ? !this.beginButton_.IsEnabled : false;
-
 		
 		/// <summary>開かれているかどうか を取得、設定</summary>
 		public bool IsOpen => Process.GetProcessesByName(this.Voiceroid2Process.ProcessName)[0].MainWindowHandle != IntPtr.Zero;
@@ -147,6 +146,8 @@ namespace Voiceroid2Sharp
 		}
 
 		public Process Voiceroid2Process => this.voiceroid2Process_;
+
+		public WindowsAppFriend Editer => this.voiceroidEditer_;
 		#endregion
 		//ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
 		#region // パブリックイベント
@@ -272,6 +273,9 @@ namespace Voiceroid2Sharp
 				this.CharaName = this.ActiveVoiceroids[0].CharaName;
 			}
 		}
+
+		[DllImport("user32.dll", CharSet = CharSet.Auto)]
+		static extern int ShowWindow(IntPtr hWnd, int nCmdShow);
 		#endregion
 		//ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
 		#region // プライベートメソッド
@@ -291,6 +295,7 @@ namespace Voiceroid2Sharp
 						this.Messages.Remove(commentEntity);
 						return;
 					}
+					ShowWindow(this.Voiceroid2Process.MainWindowHandle, 4);
 					var readingTarget = commentEntity.Message;
 					if (this.ActiveVoiceroids
 						.Where(x => !string.IsNullOrEmpty(x.Command))
@@ -364,8 +369,8 @@ namespace Voiceroid2Sharp
 				this.voiceroidEditer_ = new WindowsAppFriend(this.voiceroid2Process_);
 				
 				this.uiTreeTop_ = new WindowControl(this.voiceroidEditer_, this.Voiceroid2Process.MainWindowHandle); //this.voiceroidEditer_.GetFromTypeFullName(MAINWINDOWNAME).First();
-				var appVartextview = this.uiTreeTop_.GetFromTypeFullName(TALKEDITERVIEWNAME).First();
-				this.TextViewCollextion = appVartextview.LogicalTree(TreeRunDirection.Descendants);
+				this.textEditer_ = this.uiTreeTop_.GetFromTypeFullName(TALKEDITERVIEWNAME).First();
+				this.TextViewCollextion = this.textEditer_.LogicalTree(TreeRunDirection.Descendants);
 
 				if (this.TextViewCollextion.Count < 15) {
 					return;
@@ -426,6 +431,7 @@ namespace Voiceroid2Sharp
 		private WindowsAppFriend voiceroidEditer_;
 		private Process voiceroid2Process_;
 		private WindowControl uiTreeTop_;
+		private AppVar textEditer_;
 		private WPFTextBox talkTextBox_;
 		private WPFButtonBase playButton_;
 		private WPFButtonBase beginButton_;

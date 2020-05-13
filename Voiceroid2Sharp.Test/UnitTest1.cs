@@ -1,3 +1,4 @@
+using Codeer.Friendly.Dynamic;
 using NUnit.Framework;
 using RM.Friendly.WPFStandardControls;
 using System;
@@ -27,6 +28,12 @@ namespace Voiceroid2Sharp.Test
             for (int i = 0; i < 100; i++) {
                 this.voiceroid2Sharp_.Message = $"ƒRƒƒ“ƒg‚»‚Ì{i}";
             }
+            //var view = this.voiceroid2Sharp_.Editer.Type("AI.Talk.Editor.TextEditView");
+            //var usercontrol = new WPFUserControl(view);
+            //var context = usercontrol.LogicalTree();
+            //for (int i = 0; i < context.Count; i++) {
+            //    Console.WriteLine(context[i]);
+            //}
             while ((this.voiceroid2Sharp_.Messages.Any() || this.voiceroid2Sharp_.IsTalking) && this.voiceroid2Sharp_.IsOpen) {
                 Console.WriteLine($"isOpen : {this.voiceroid2Sharp_.IsOpen}");
                 await Task.Delay(500);
