@@ -24,19 +24,35 @@ namespace Voiceroid2Sharp.Test
         [Test]
         public async Task ReadOneHandredCommment()
         {
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 100; i++) {
                 this.voiceroid2Sharp_.Message = $"ƒRƒƒ“ƒg‚»‚Ì{i}";
             }
             while (this.voiceroid2Sharp_.Messages.Any() || this.voiceroid2Sharp_.IsTalking) {
+                Debug.WriteLine($"{this.voiceroid2Sharp_.IsOpen}");
                 await Task.Delay(500);
             }
             Console.WriteLine(this.voiceroid2Sharp_.Log);
         }
 
         [Test]
-        public async Task StartV2()
+        public void StartV2()
         {
-            await this.voiceroid2Sharp_.ConnectV2();
+            Console.WriteLine(this.voiceroid2Sharp_.Log);
+            while (this.voiceroid2Sharp_.IsOpen) ;
+        }
+
+        [Test]
+        public void CloseV2()
+        {
+            var isClose = false;
+
+            this.voiceroid2Sharp_.OnExitVoiceroid2 += (s) =>
+            {
+                Console.WriteLine(s);
+                isClose = true;
+            };
+
+            while (!isClose) ;
         }
 
         [Test]

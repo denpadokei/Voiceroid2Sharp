@@ -1,4 +1,5 @@
 ﻿using Codeer.Friendly;
+using Codeer.Friendly.Dynamic;
 using Codeer.Friendly.Windows;
 using Codeer.Friendly.Windows.Grasp;
 using Prism.Commands;
@@ -13,12 +14,15 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace Voiceroid2Sharp
 {
@@ -116,7 +120,21 @@ namespace Voiceroid2Sharp
 		}
 
 		/// <summary>話し中かどうか を取得、設定</summary>
-		public bool IsTalking => !this.beginButton_.IsEnabled;
+		public bool IsTalking => this.beginButton_ != null ? !this.beginButton_.IsEnabled : false;
+
+		
+		/// <summary>開かれているかどうか を取得、設定</summary>
+		public bool IsOpen => Process.GetProcessesByName(this.Voiceroid2Process.ProcessName)[0].MainWindowHandle != IntPtr.Zero;
+
+		/// <summary>ダイアログID を取得、設定</summary>
+		private int dialogId_;
+		/// <summary>ダイアログID を取得、設定</summary>
+		public int DialogId
+		{
+			get => this.dialogId_;
+
+			set => this.SetProperty(ref this.dialogId_, value);
+		}
 
 		/// <summary>発話した文字やその他ログ を取得、設定</summary>
 		private string log_;
@@ -145,7 +163,12 @@ namespace Voiceroid2Sharp
 		{
 			base.OnPropertyChanged(args);
 			if (args.PropertyName == nameof(this.Message)) {
-				this.Messages.Add(new CommentEntity(this.Message));
+				if (!this.IsOpen && this.IsV2Connected) {
+					this.DisConnectV2();
+				}
+				else {
+					this.Messages.Add(new CommentEntity(this.Message));
+				}
 			}
 		}
 		#endregion
@@ -174,7 +197,7 @@ namespace Voiceroid2Sharp
 			Debug.WriteLine("VoiceroidEditor Length:" + voiceroidProcess.Length.ToString());
 			if (voiceroidProcess.Any()) {
 				while (retrycount < MAXRETRYCOUNT && !this.IsV2Connected) {
-					await this.AttachV2Editer(voiceroidProcess[0]);
+					this.AttachV2Editer(voiceroidProcess[0]);
 					retrycount++;
 					if (!this.IsV2Connected) {
 						await Task.Delay(3000);
@@ -184,7 +207,7 @@ namespace Voiceroid2Sharp
 			else if (autoStart) {
 				var p = await this.StartV2();
 				while (retrycount < MAXRETRYCOUNT && !this.IsV2Connected) {
-					await this.AttachV2Editer(p);
+					this.AttachV2Editer(p);
 					retrycount++;
 					if (!this.IsV2Connected) {
 						await Task.Delay(3000);
@@ -202,6 +225,27 @@ namespace Voiceroid2Sharp
 			else {
 				this.UnFindVoiceroidProcess?.Invoke("VOICEROID2との接続に失敗しました。");
 			}
+		}
+
+		/// <summary>
+		/// VOICEROID2との接続を切ります。
+		/// </summary>
+		/// <param name="sender">呼び出し元の<see cref="Process"/></param>
+		/// <param name="e">終了イベントを格納している<see cref="EventArgs"/></param>
+		public void DisConnectV2()
+		{
+			Debug.WriteLine("VOICEROID2終了を検出");
+			this.tokenSource_.Cancel();
+			this.voiceroid2Process_?.Kill();
+			this.voiceroidEditer_?.Dispose();
+			this.IsV2Connected = false;
+			this.uiTreeTop_ = null;
+			this.talkTextBox_ = null;
+			this.playButton_ = null;
+			this.beginButton_ = null;
+			this.TextViewCollextion = null;
+			this.WriteLog("VOICEROIDと切断しました。");
+			this.OnExitVoiceroid2?.Invoke("VOICEROID2と切断しました。");
 		}
 
 		/// <summary>
@@ -231,25 +275,6 @@ namespace Voiceroid2Sharp
 		//ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
 		#region // プライベートメソッド
 		/// <summary>
-		/// VOICEROID2が終了したときに呼び出されます
-		/// </summary>
-		/// <param name="sender">呼び出し元の<see cref="Process"/></param>
-		/// <param name="e">終了イベントを格納している<see cref="EventArgs"/></param>
-		private void OnV2Exit(object sender, EventArgs e)
-		{
-			Debug.WriteLine("VOICEROID2終了を検出");
-			this.voiceroidEditer_.Dispose();
-			this.IsV2Connected = false;
-			this.uiTreeTop_ = null;
-			this.talkTextBox_ = null;
-			this.playButton_ = null;
-			this.beginButton_ = null;
-			this.TextViewCollextion = null;
-			this.WriteLog("VOICEROID2が終了しました。");
-			this.OnExitVoiceroid2?.Invoke("VOICEROID2が終了しました。");
-		}
-
-		/// <summary>
 		/// 文字列をVOICEROID2に送り再生ボタンをクリックします。
 		/// 読み上げるキャラは<see cref="this.CharaName"/>を参照します。
 		/// ただし、コマンドが入力されている場合はコマンドのキャラで読み上げます。
@@ -257,8 +282,14 @@ namespace Voiceroid2Sharp
 		private async Task TalkingAsync(IList newItems)
 		{
 			await this.semaphoreSlim_.WaitAsync();
+			
 			try {
+				this.tokenSource_ = new CancellationTokenSource();
 				foreach (var commentEntity in newItems.OfType<CommentEntity>()) {
+					if (this.IsOpen != true) {
+						this.Messages.Remove(commentEntity);
+						return;
+					}
 					var readingTarget = commentEntity.Message;
 					if (this.ActiveVoiceroids
 						.Where(x => !string.IsNullOrEmpty(x.Command))
@@ -274,7 +305,10 @@ namespace Voiceroid2Sharp
 								await Task.Delay(300);
 								this.RaisePropertyChanged(nameof(this.IsTalking));
 								while (this.IsTalking) {
-									await Task.Delay(500);
+									if (this.IsOpen != true) {
+										break;
+									}
+									await Task.Delay(500, this.tokenSource_.Token);
 								}
 								this.Messages.Remove(commentEntity);
 								break;
@@ -289,7 +323,10 @@ namespace Voiceroid2Sharp
 						await Task.Delay(300);
 						this.RaisePropertyChanged(nameof(this.IsTalking));
 						while (this.IsTalking) {
-							await Task.Delay(500);
+							if (this.IsOpen != true) {
+								break;
+							}
+							await Task.Delay(500, this.tokenSource_.Token);
 						}
 						this.Messages.Remove(commentEntity);
 					}
@@ -311,9 +348,6 @@ namespace Voiceroid2Sharp
 		/// <param name="e">イベント<see cref="NotifyCollectionChangedEventArgs"/></param>
 		private void OnMessageCollectionChenged(object sender, NotifyCollectionChangedEventArgs e)
 		{
-			if (e.Action == NotifyCollectionChangedAction.Remove || !this.IsV2Connected) {
-				return;
-			}
 			var _ = this.TalkingAsync(e.NewItems);
 		}
 
@@ -321,17 +355,16 @@ namespace Voiceroid2Sharp
 		/// VOICEROID2のプロセスからウインドウを取得します。
 		/// </summary>
 		/// <param name="vProcess">VOICEROID2の<see cref="Process"/></param>
-		private async Task AttachV2Editer(Process vProcess)
+		private void AttachV2Editer(Process vProcess)
 		{
 			this.IsV2Connected = false;
 			this.voiceroid2Process_ = vProcess;
-			this.voiceroid2Process_.Exited += this.OnV2Exit;
-
 			try {
 				this.voiceroidEditer_ = new WindowsAppFriend(this.voiceroid2Process_);
-				this.uiTreeTop_ = WindowControl.FromZTop(this.voiceroidEditer_);
-
-				this.TextViewCollextion = this.uiTreeTop_.GetFromTypeFullName(TALKEDITERVIEWNAME)[0].LogicalTree(TreeRunDirection.Descendants);
+				
+				this.uiTreeTop_ = new WindowControl(this.voiceroidEditer_, this.Voiceroid2Process.MainWindowHandle); //this.voiceroidEditer_.GetFromTypeFullName(MAINWINDOWNAME).First();
+				var appVartextview = this.uiTreeTop_.GetFromTypeFullName(TALKEDITERVIEWNAME).First();
+				this.TextViewCollextion = appVartextview.LogicalTree(TreeRunDirection.Descendants);
 
 				if (this.TextViewCollextion.Count < 15) {
 					return;
@@ -344,18 +377,9 @@ namespace Voiceroid2Sharp
 				}
 				Debug.WriteLine("-----------------------------------------------");
 #endif
-
 				this.talkTextBox_ = new WPFTextBox(this.textViewCollection_[4]);
 				this.playButton_ = new WPFButtonBase(this.TextViewCollextion[6]);
 				this.beginButton_ = new WPFButtonBase(this.TextViewCollextion[15]);
-				this.LastPlay = DateTime.Now;
-				this.talkTextBox_.EmulateChangeText("起動準備中、しばらくお待ちください。");
-				this.WriteLog("起動準備中、しばらくお待ちください。");
-				this.playButton_.EmulateClick();
-				await Task.Delay(300);
-				while (this.IsTalking) {
-					await Task.Delay(500);
-				}
 				this.IsV2Connected = true;
 			}
 			catch (Exception e) {
@@ -370,15 +394,15 @@ namespace Voiceroid2Sharp
 		/// <returns>起動したVOICEROID2の<see cref="Process"/></returns>
 		private async Task<Process> StartV2()
 		{
-			var p = new Process();
-			p.StartInfo.FileName = VOICEROID2PATH;
-			p.Start();
-			p.WaitForInputIdle();
-			this.WriteLog("VOICEROID2を起動中です。");
-			await Task.Delay(4000);
-			return p;
+			using (var p = new Process()) {
+				p.StartInfo.FileName = VOICEROID2PATH;
+				p.Start();
+				p.WaitForInputIdle();
+				this.WriteLog("VOICEROID2を起動中です。");
+				await Task.Delay(4000);
+				return p;
+			}
 		}
-
 		private void WriteLog(string log)
 		{
 			var builder = new StringBuilder();
@@ -393,9 +417,9 @@ namespace Voiceroid2Sharp
 		private static readonly string INSTALLFOLDERPATH = @"C:\Program Files (x86)\AHS\VOICEROID2";
 		private static readonly string VOICEROID2PATH = @"C:\Program Files (x86)\AHS\VOICEROID2\VoiceroidEditor.exe";
 		private static readonly string TALKEDITERVIEWNAME = "AI.Talk.Editor.TextEditView";
-		private static readonly string MAINWINDOWNAME = "AI.Talk.Editor.MainWindow";
+		//private static readonly string MAINWINDOWNAME = "AI.Talk.Editor.MainWindow";
+		//private static readonly string SPLASHWINDOWNAME = "AI.Framework.Wpf.SplashWindow";
 		private static readonly int MAXRETRYCOUNT = 5;
-		private readonly object lockObject_ = new object();
 
 		private SemaphoreSlim semaphoreSlim_;
 		private WindowsAppFriend voiceroidEditer_;
@@ -404,6 +428,8 @@ namespace Voiceroid2Sharp
 		private WPFTextBox talkTextBox_;
 		private WPFButtonBase playButton_;
 		private WPFButtonBase beginButton_;
+
+		private CancellationTokenSource tokenSource_;
 		#endregion
 		//ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
 		#region // 構築・破棄
