@@ -112,42 +112,30 @@ namespace Voiceroid2Sharp
 		/// <summary>テキストビューコレクション を取得、設定</summary>
 		private IWPFDependencyObjectCollection<DependencyObject> textViewCollection_;
 		/// <summary>テキストビューコレクション を取得、設定</summary>
-		public IWPFDependencyObjectCollection<DependencyObject> TextViewCollextion
+		public IWPFDependencyObjectCollection<DependencyObject> TextEditerViewCollextion
 		{
 			get => this.textViewCollection_;
 
 			private set => this.SetProperty(ref this.textViewCollection_, value);
 		}
 
-		/// <summary>話し中かどうか を取得、設定</summary>
-		//public bool IsPlaying => this.beginButton_ != null ? !this.beginButton_.IsEnabled : false;
-		
 		/// <summary>開かれているかどうか を取得、設定</summary>
 		public bool IsOpen => Process.GetProcessesByName(this.Voiceroid2Process.ProcessName)[0].MainWindowHandle != IntPtr.Zero;
 
+		/// <summary> 再生中かどうか </summary>
 		public bool IsPlaying
 		{
 			get
 			{
-				if (this.textEditer_ == null) {
+				if (this.textEditerView_ == null) {
 					return false;
 				}
 
-				var textEditer = this.textEditer_.Dynamic();
+				var textEditer = this.textEditerView_.Dynamic();
 				var context = textEditer.DataContext.IsPlaying;
 				bool isPlaying = context;
 				return isPlaying;
 			}
-		}
-
-		/// <summary>ダイアログID を取得、設定</summary>
-		private int dialogId_;
-		/// <summary>ダイアログID を取得、設定</summary>
-		public int DialogId
-		{
-			get => this.dialogId_;
-
-			set => this.SetProperty(ref this.dialogId_, value);
 		}
 
 		/// <summary>発話した文字やその他ログ を取得、設定</summary>
@@ -256,11 +244,10 @@ namespace Voiceroid2Sharp
 			this.voiceroid2Process_?.Kill();
 			this.voiceroidEditer_?.Dispose();
 			this.IsV2Connected = false;
-			this.uiTreeTop_ = null;
+			this.mainWindow_ = null;
 			this.talkTextBox_ = null;
 			this.playButton_ = null;
-			this.beginButton_ = null;
-			this.TextViewCollextion = null;
+			this.TextEditerViewCollextion = null;
 			this.WriteLog("VOICEROIDと切断しました。");
 			this.OnExitVoiceroid2?.Invoke("VOICEROID2と切断しました。");
 		}
@@ -381,24 +368,23 @@ namespace Voiceroid2Sharp
 			try {
 				this.voiceroidEditer_ = new WindowsAppFriend(this.voiceroid2Process_);
 				
-				this.uiTreeTop_ = new WindowControl(this.voiceroidEditer_, this.Voiceroid2Process.MainWindowHandle); //this.voiceroidEditer_.GetFromTypeFullName(MAINWINDOWNAME).First();
-				this.textEditer_ = this.uiTreeTop_.GetFromTypeFullName(TALKEDITERVIEWNAME).Single();
-				this.TextViewCollextion = this.textEditer_.LogicalTree(TreeRunDirection.Descendants);
+				this.mainWindow_ = new WindowControl(this.voiceroidEditer_, this.Voiceroid2Process.MainWindowHandle);
+				this.textEditerView_ = this.mainWindow_.GetFromTypeFullName(TALKEDITERVIEWNAME).Single();
+				this.TextEditerViewCollextion = this.textEditerView_.LogicalTree(TreeRunDirection.Descendants);
 
-				if (this.TextViewCollextion.Count < 15) {
+				if (this.TextEditerViewCollextion.Count < 15) {
 					return;
 				}
 #if DEBUG
 				Debug.WriteLine("-----------------------------------------------");
-				for (int i = 0; i < this.TextViewCollextion.Count; i++) {
+				for (int i = 0; i < this.TextEditerViewCollextion.Count; i++) {
 					Debug.WriteLine($"アイテムID:{i}");
-					Debug.WriteLine($"{this.TextViewCollextion[i]}");
+					Debug.WriteLine($"{this.TextEditerViewCollextion[i]}");
 				}
 				Debug.WriteLine("-----------------------------------------------");
 #endif
 				this.talkTextBox_ = new WPFTextBox(this.textViewCollection_[4]);
-				this.playButton_ = new WPFButtonBase(this.TextViewCollextion[6]);
-				this.beginButton_ = new WPFButtonBase(this.TextViewCollextion[15]);
+				this.playButton_ = new WPFButtonBase(this.TextEditerViewCollextion[6]);
 				this.IsV2Connected = true;
 			}
 			catch (Exception e) {
@@ -443,11 +429,10 @@ namespace Voiceroid2Sharp
 		private SemaphoreSlim semaphoreSlim_;
 		private WindowsAppFriend voiceroidEditer_;
 		private Process voiceroid2Process_;
-		private WindowControl uiTreeTop_;
-		private AppVar textEditer_;
+		private WindowControl mainWindow_;
+		private AppVar textEditerView_;
 		private WPFTextBox talkTextBox_;
 		private WPFButtonBase playButton_;
-		private WPFButtonBase beginButton_;
 
 		private CancellationTokenSource tokenSource_;
 		#endregion

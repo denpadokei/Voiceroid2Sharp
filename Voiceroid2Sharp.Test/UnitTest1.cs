@@ -67,14 +67,14 @@ namespace Voiceroid2Sharp.Test
         [Test]
         public void EnumrateTextView()
         {
-            for (int i = 0; i < this.voiceroid2Sharp_.TextViewCollextion.Count; i++) {
-                if (this.voiceroid2Sharp_.TextViewCollextion[i].ToString().Contains("TextBlock")) {
-                    Console.WriteLine($"アイテムID{i}:{this.voiceroid2Sharp_.TextViewCollextion[i]}");
-                    var textBlock = new WPFTextBlock(this.voiceroid2Sharp_.TextViewCollextion[i]);
+            for (int i = 0; i < this.voiceroid2Sharp_.TextEditerViewCollextion.Count; i++) {
+                if (this.voiceroid2Sharp_.TextEditerViewCollextion[i].ToString().Contains("TextBlock")) {
+                    Console.WriteLine($"アイテムID{i}:{this.voiceroid2Sharp_.TextEditerViewCollextion[i]}");
+                    var textBlock = new WPFTextBlock(this.voiceroid2Sharp_.TextEditerViewCollextion[i]);
                     Console.WriteLine(textBlock.Text);
                 }
-                else if (this.voiceroid2Sharp_.TextViewCollextion[i].ToString().Contains("Button")) {
-                    Console.WriteLine($"アイテムID{i}:{this.voiceroid2Sharp_.TextViewCollextion[i]}");
+                else if (this.voiceroid2Sharp_.TextEditerViewCollextion[i].ToString().Contains("Button")) {
+                    Console.WriteLine($"アイテムID{i}:{this.voiceroid2Sharp_.TextEditerViewCollextion[i]}");
                 }
             }
         }
