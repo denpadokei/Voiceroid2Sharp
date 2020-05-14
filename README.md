@@ -19,7 +19,7 @@ ActiveVoiceroidsの中のCommandにコマンドを登録してあげることで
 ## サンプル
 コメントを100個連続で読み上げます。
 
-''' csharp
+'''csharp
 
 public void ReadOneHandredCommment()
 {
