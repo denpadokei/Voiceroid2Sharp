@@ -8,7 +8,7 @@ using Voiceroid2Sharp.Standard.Models;
 
 namespace Voiceroid2Sharp.Standard.Interfaces
 {
-    public interface IVoiceroid2
+    public interface IVoiceroid2 : IDisposable
     {
         ReadOnlyDictionary<string, string> Voiceroids { get; }
         ConcurrentBag<Voiceroid2Entity> ActiveVoiceroids { get; }

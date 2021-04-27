@@ -2,6 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Copyright>(C) 2021@denpadokei</Copyright>
+    <RepositoryUrl>https://github.com/denpadokei/Voiceroid2Sharp</RepositoryUrl>
+    <NeutralLanguage>ja</NeutralLanguage>
   </PropertyGroup>
 
   <ItemGroup>

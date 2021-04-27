@@ -19,7 +19,7 @@ using Voiceroid2Sharp.Standard.Models;
 
 namespace Voiceroid2Sharp.Standard
 {
-    public class Voiceroid2 : IDisposable, IVoiceroid2
+    public class Voiceroid2 : IVoiceroid2
     {
         //ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
         #region // プロパティ
@@ -112,54 +112,63 @@ namespace Voiceroid2Sharp.Standard
         }
         public void Talk(IEnumerable<CommentEntity> messages)
         {
-            try {
-                this._tokenSource = new CancellationTokenSource();
-                foreach (var commentEntity in messages) {
-                    if (!this.IsOpen) {
+            lock (_lockObject) {
+                try {
+                    if (!this.IsConnected) {
                         return;
                     }
-                    var readingTarget = commentEntity.Message;
+                    if (!this.IsOpen && this.IsConnected) {
+                        this.Disconnect();
+                        return;
+                    }
+                    this._tokenSource = new CancellationTokenSource();
+                    foreach (var commentEntity in messages) {
+                        if (!this.IsOpen) {
+                            return;
+                        }
+                        var readingTarget = commentEntity.Message;
 
-                    var anyCommand = this.ActiveVoiceroids
-                        .Where(x => !string.IsNullOrEmpty(x.Command))
-                        .Any(x => Regex.IsMatch(readingTarget, $"^{x.Command.Replace(")", @"\)")}"));
-                    if (anyCommand) {
-                        foreach (var activeViceroid in this.ActiveVoiceroids.Where(x => !string.IsNullOrEmpty(x.Command))) {
-                            var regex = new Regex($"^{activeViceroid.Command.Replace(")", @"\)")}");
-                            if (regex.IsMatch(readingTarget)) {
-                                var replacedTarget = regex.Replace(readingTarget, "");
-                                this.LastPlay = DateTime.Now;
-                                this._talkTextBox.EmulateChangeText($"{activeViceroid.VoiceroidName}＞{replacedTarget}");
-                                //this.WriteLog($"{activeViceroid.CharaName}＞{replacedTarget}");
-                                this._playButton.EmulateClick();
-                                Thread.Sleep(300);
-                                while (this.IsPlaying) {
-                                    if (!this.IsOpen || this._tokenSource.IsCancellationRequested) {
-                                        break;
+                        var anyCommand = this.ActiveVoiceroids
+                            .Where(x => !string.IsNullOrEmpty(x.Command))
+                            .Any(x => Regex.IsMatch(readingTarget, $"^{x.Command.Replace(")", @"\)")}"));
+                        if (anyCommand) {
+                            foreach (var activeViceroid in this.ActiveVoiceroids.Where(x => !string.IsNullOrEmpty(x.Command))) {
+                                var regex = new Regex($"^{activeViceroid.Command.Replace(")", @"\)")}");
+                                if (regex.IsMatch(readingTarget)) {
+                                    var replacedTarget = regex.Replace(readingTarget, "");
+                                    this.LastPlay = DateTime.Now;
+                                    this._talkTextBox.EmulateChangeText($"{activeViceroid.VoiceroidName}＞{replacedTarget}");
+                                    //this.WriteLog($"{activeViceroid.CharaName}＞{replacedTarget}");
+                                    this._playButton.EmulateClick();
+                                    Thread.Sleep(300);
+                                    while (this.IsPlaying) {
+                                        if (!this.IsOpen || this._tokenSource.IsCancellationRequested) {
+                                            break;
+                                        }
+                                        Thread.Sleep(500);
                                     }
-                                    Thread.Sleep(500);
+                                    break;
                                 }
-                                break;
                             }
                         }
-                    }
-                    else {
-                        this.LastPlay = DateTime.Now;
-                        this._talkTextBox.EmulateChangeText($"{this.CurrentVoiceroid}＞{readingTarget}");
-                        //this.WriteLog($"{this.CharaName}＞{readingTarget}");
-                        this._playButton.EmulateClick();
-                        Thread.Sleep(300);
-                        while (this.IsPlaying) {
-                            if (this.IsOpen || this._tokenSource.IsCancellationRequested) {
-                                break;
+                        else {
+                            this.LastPlay = DateTime.Now;
+                            this._talkTextBox.EmulateChangeText($"{this.CurrentVoiceroid}＞{readingTarget}");
+                            //this.WriteLog($"{this.CharaName}＞{readingTarget}");
+                            this._playButton.EmulateClick();
+                            Thread.Sleep(300);
+                            while (this.IsPlaying) {
+                                if (!this.IsOpen || this._tokenSource.IsCancellationRequested) {
+                                    break;
+                                }
+                                Thread.Sleep(500);
                             }
-                            Thread.Sleep(500);
                         }
                     }
                 }
-            }
-            catch (Exception e) {
-                Debug.WriteLine($"{e}");
+                catch (Exception e) {
+                    Debug.WriteLine($"{e}");
+                }
             }
         }
         public void Talk(params string[] messages) => this.Talk(messages.Select(x => new CommentEntity(x)));
@@ -190,9 +199,9 @@ namespace Voiceroid2Sharp.Standard
                 }
 #if DEBUG
 				Debug.WriteLine("-----------------------------------------------");
-				for (int i = 0; i < this.TextEditerViewCollextion.Count; i++) {
+				for (int i = 0; i < this._textViewCollection.Count; i++) {
 					Debug.WriteLine($"ItemID:{i}");
-					Debug.WriteLine($"{this.TextEditerViewCollextion[i]}");
+					Debug.WriteLine($"{this._textViewCollection[i]}");
 				}
 				Debug.WriteLine("-----------------------------------------------");
 #endif
@@ -265,6 +274,7 @@ namespace Voiceroid2Sharp.Standard
         private bool disposedValue;
         private dynamic _textEditViewDataContext;
         private IWPFDependencyObjectCollection<DependencyObject> _textViewCollection;
+        private static object _lockObject = new object();
         #endregion
         //ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
         #region // 構築・破棄
