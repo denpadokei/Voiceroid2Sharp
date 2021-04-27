@@ -1,6 +1,7 @@
 # Voiceroid2Sharp
 VOICEROID2を外部から操作するライブラリ
-
+# Nuget  
+[こちら](https://www.nuget.org/packages/Voiceroid2Sharp.Standard/)からどうぞ  
 # 使い方
 ## 初期化
 V2Connectを走らせることでVOICEROID2Editerを探して接続します。
