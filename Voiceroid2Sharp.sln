@@ -5,7 +5,9 @@ VisualStudioVersion = 16.0.30002.166
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Voiceroid2Sharp", "Voiceroid2Sherp\Voiceroid2Sharp.csproj", "{41FEA889-2FDA-4CB7-8F69-22C325E9E4F0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Voiceroid2Sharp.Test", "Voiceroid2Sharp.Test\Voiceroid2Sharp.Test.csproj", "{7977064C-6B71-40A3-ADE7-B74488DB3B2D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Voiceroid2Sharp.Test", "Voiceroid2Sharp.Test\Voiceroid2Sharp.Test.csproj", "{7977064C-6B71-40A3-ADE7-B74488DB3B2D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Voiceroid2Sharp.Standard", "Voiceroid2Sharp.Standard\Voiceroid2Sharp.Standard.csproj", "{0BC3E102-1C67-4558-AB9F-0A4735FA5DDE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,6 +33,14 @@ Global
 		{7977064C-6B71-40A3-ADE7-B74488DB3B2D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7977064C-6B71-40A3-ADE7-B74488DB3B2D}.Release|x86.ActiveCfg = Release|x86
 		{7977064C-6B71-40A3-ADE7-B74488DB3B2D}.Release|x86.Build.0 = Release|x86
+		{0BC3E102-1C67-4558-AB9F-0A4735FA5DDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0BC3E102-1C67-4558-AB9F-0A4735FA5DDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0BC3E102-1C67-4558-AB9F-0A4735FA5DDE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0BC3E102-1C67-4558-AB9F-0A4735FA5DDE}.Debug|x86.Build.0 = Debug|Any CPU
+		{0BC3E102-1C67-4558-AB9F-0A4735FA5DDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0BC3E102-1C67-4558-AB9F-0A4735FA5DDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0BC3E102-1C67-4558-AB9F-0A4735FA5DDE}.Release|x86.ActiveCfg = Release|Any CPU
+		{0BC3E102-1C67-4558-AB9F-0A4735FA5DDE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

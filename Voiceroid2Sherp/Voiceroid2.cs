@@ -123,20 +123,7 @@ namespace Voiceroid2Sharp
 		public bool IsOpen => Process.GetProcessesByName(this.Voiceroid2Process.ProcessName)[0].MainWindowHandle != IntPtr.Zero;
 
 		/// <summary> 再生中かどうか </summary>
-		public bool IsPlaying
-		{
-			get
-			{
-				if (this.textEditerView_ == null) {
-					return false;
-				}
-
-				var textEditer = this.textEditerView_.Dynamic();
-				var context = textEditer.DataContext.IsPlaying;
-				bool isPlaying = context;
-				return isPlaying;
-			}
-		}
+		public bool IsPlaying => (bool)this.TextEditViewDataContext.IsPlaying;
 
 		/// <summary>発話した文字やその他ログ を取得、設定</summary>
 		private string log_;
@@ -146,6 +133,16 @@ namespace Voiceroid2Sharp
 			get => this.log_;
 
 			private set => this.SetProperty(ref this.log_, value);
+		}
+
+		/// <summary>DataContextのdynamic型 を取得、設定</summary>
+		private dynamic textEditViewDataContext_;
+		/// <summary>DataContextのdynamic型 を取得、設定</summary>
+		public dynamic TextEditViewDataContext
+		{
+			get => this.textEditViewDataContext_;
+
+			set => this.SetProperty(ref this.textEditViewDataContext_, value);
 		}
 
 		public Process Voiceroid2Process => this.voiceroid2Process_;
@@ -370,6 +367,8 @@ namespace Voiceroid2Sharp
 				
 				this.mainWindow_ = new WindowControl(this.voiceroidEditer_, this.Voiceroid2Process.MainWindowHandle);
 				this.textEditerView_ = this.mainWindow_.GetFromTypeFullName(TALKEDITERVIEWNAME).Single();
+				var textEditer = this.textEditerView_.Dynamic();
+				this.TextEditViewDataContext = textEditer.DataContext;
 				this.TextEditerViewCollextion = this.textEditerView_.LogicalTree(TreeRunDirection.Descendants);
 
 				if (this.TextEditerViewCollextion.Count < 15) {
