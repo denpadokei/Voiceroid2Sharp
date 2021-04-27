@@ -29,7 +29,8 @@ namespace Voiceroid2Sharp.Standard
 
         public bool IsConnected { get; private set; }
 
-        public bool IsPlaying {
+        public bool IsPlaying
+        {
             get
             {
                 if (this._textEditViewDataContext == null) {
@@ -209,6 +210,9 @@ namespace Voiceroid2Sharp.Standard
                 this._mainWindow = new WindowControl(this._voiceroidEditer, this._voiceroid2Process.MainWindowHandle);
                 this._textEditerView = this._mainWindow.GetFromTypeFullName(TALKEDITERVIEWNAME).Single();
                 var textEditer = this._textEditerView.Dynamic();
+                if (textEditer == null) {
+                    return;
+                }
                 this._textEditViewDataContext = textEditer.DataContext;
                 this._textViewCollection = this._textEditerView.LogicalTree(TreeRunDirection.Descendants);
 
@@ -281,7 +285,6 @@ namespace Voiceroid2Sharp.Standard
         private static readonly string TALKEDITERVIEWNAME = "AI.Talk.Editor.TextEditView";
         private static readonly int MAXRETRYCOUNT = 5;
 
-        private SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
         private WindowsAppFriend _voiceroidEditer;
         private Process _voiceroid2Process;
         private WindowControl _mainWindow;
@@ -292,7 +295,7 @@ namespace Voiceroid2Sharp.Standard
         private bool disposedValue;
         private dynamic _textEditViewDataContext;
         private IWPFDependencyObjectCollection<DependencyObject> _textViewCollection;
-        private static object _lockObject = new object();
+        private static readonly object _lockObject = new object();
         #endregion
         //ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
         #region // 構築・破棄
@@ -330,10 +333,9 @@ namespace Voiceroid2Sharp.Standard
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue) {
+            if (!this.disposedValue) {
                 if (disposing) {
                     // TODO: マネージド状態を破棄します (マネージド オブジェクト)
-                    this._semaphoreSlim?.Dispose();
                     this._voiceroidEditer?.Dispose();
                     this._voiceroid2Process?.Dispose();
                     this._textEditerView?.Dispose();
@@ -342,7 +344,7 @@ namespace Voiceroid2Sharp.Standard
 
                 // TODO: アンマネージド リソース (アンマネージド オブジェクト) を解放し、ファイナライザーをオーバーライドします
                 // TODO: 大きなフィールドを null に設定します
-                disposedValue = true;
+                this.disposedValue = true;
             }
         }
 
@@ -356,7 +358,7 @@ namespace Voiceroid2Sharp.Standard
         public void Dispose()
         {
             // このコードを変更しないでください。クリーンアップ コードを 'Dispose(bool disposing)' メソッドに記述します
-            Dispose(disposing: true);
+            this.Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
         #endregion
