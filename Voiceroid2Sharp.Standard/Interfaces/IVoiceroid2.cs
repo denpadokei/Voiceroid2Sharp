@@ -10,6 +10,8 @@ namespace Voiceroid2Sharp.Standard.Interfaces
 {
     public interface IVoiceroid2 : IDisposable
     {
+        event OnVoiceroid2ConnectedHadler OnConnected;
+        event OnVoiceroid2DisconnectedHadler OnDisconnected;
         ReadOnlyDictionary<string, string> Voiceroids { get; }
         ConcurrentBag<Voiceroid2Entity> ActiveVoiceroids { get; }
         bool IsConnected { get; }
@@ -24,4 +26,6 @@ namespace Voiceroid2Sharp.Standard.Interfaces
         Task TalkAsync(IEnumerable<CommentEntity> messages);
         Task TalkAsync(params string[] messages);
     }
+    public delegate void OnVoiceroid2ConnectedHadler(object sender, EventArgs e);
+    public delegate void OnVoiceroid2DisconnectedHadler(object sender, EventArgs e);
 }
