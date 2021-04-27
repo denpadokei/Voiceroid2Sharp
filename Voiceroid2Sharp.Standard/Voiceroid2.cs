@@ -29,10 +29,33 @@ namespace Voiceroid2Sharp.Standard
 
         public bool IsConnected { get; private set; }
 
-        public bool IsPlaying => (bool)this._textEditViewDataContext.IsPlaying;
+        public bool IsPlaying {
+            get
+            {
+                if (this._textEditViewDataContext == null) {
+                    return false;
+                }
+                try {
+                    return (bool)this._textEditViewDataContext.IsPlaying;
+                }
+                catch (Exception) {
+                    return false;
+                }
+            }
+        }
         public DateTime LastPlay { get; private set; }
         public string CurrentVoiceroid { get; set; }
-        private bool IsOpen => Process.GetProcessesByName(this._voiceroid2Process.ProcessName)[0].MainWindowHandle != IntPtr.Zero;
+        private bool IsOpen
+        {
+            get
+            {
+                var processe = Process.GetProcessesByName(this._voiceroid2Process.ProcessName).FirstOrDefault();
+                if (processe == null) {
+                    return false;
+                }
+                return processe.MainWindowHandle != IntPtr.Zero;
+            }
+        }
         #endregion
         //ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
         #region // パブリックイベント
