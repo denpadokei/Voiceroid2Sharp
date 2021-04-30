@@ -317,7 +317,7 @@ namespace Voiceroid2Sharp.Standard
                 this.currentExecuteApp = IntPtrType.X86;
             }
             else if (IntPtr.Size == 8) {
-                this.currentExecuteApp = IntPtrType.X86;
+                this.currentExecuteApp = IntPtrType.X64;
             }
         }
         #endregion
