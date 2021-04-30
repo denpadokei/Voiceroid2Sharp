@@ -256,27 +256,32 @@ namespace Voiceroid2Sharp.Standard
             while (this.ActiveVoiceroids.TryTake(out _)) {
 
             }
-            var voicePath = "";
-            switch (this.currentExecuteApp) {
-                case IntPtrType.X64:
-                    voicePath = INSTALLFOLDERPATH_X64;
-                    break;
-                case IntPtrType.X86:
-                    voicePath = INSTALLFOLDERPATH_X86;
-                    break;
-                default:
-                    voicePath = INSTALLFOLDERPATH_X64;
-                    break;
-            }
-            if (Directory.Exists(voicePath)) {
-                var directories = Directory.EnumerateDirectories(voicePath);
-                if (!directories.Any()) {
-                    return;
+            foreach (var item in Enum.GetValues(typeof(IntPtrType)).OfType<IntPtrType>()) {
+                if (item == IntPtrType.Unknown) {
+                    continue;
                 }
-                foreach (var directory in directories) {
-                    var directoryInfo = new DirectoryInfo(directory);
-                    if (this.Voiceroids.TryGetValue(directoryInfo.Name, out var value)) {
-                        this.ActiveVoiceroids.Add(new Voiceroid2Entity(value, ""));
+                var voicePath = "";
+                switch (this.currentExecuteApp) {
+                    case IntPtrType.X64:
+                        voicePath = INSTALLFOLDERPATH_X64;
+                        break;
+                    case IntPtrType.X86:
+                        voicePath = INSTALLFOLDERPATH_X86;
+                        break;
+                    default:
+                        voicePath = INSTALLFOLDERPATH_X64;
+                        break;
+                }
+                if (Directory.Exists(voicePath)) {
+                    var directories = Directory.EnumerateDirectories(voicePath);
+                    if (!directories.Any()) {
+                        continue;
+                    }
+                    foreach (var directory in directories) {
+                        var directoryInfo = new DirectoryInfo(directory);
+                        if (this.Voiceroids.TryGetValue(directoryInfo.Name, out var value)) {
+                            this.ActiveVoiceroids.Add(new Voiceroid2Entity(value, ""));
+                        }
                     }
                 }
             }
