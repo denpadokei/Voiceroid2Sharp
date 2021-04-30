@@ -5,7 +5,7 @@
     <Copyright>(C) 2021@denpadokei</Copyright>
     <RepositoryUrl>https://github.com/denpadokei/Voiceroid2Sharp</RepositoryUrl>
     <NeutralLanguage>ja</NeutralLanguage>
-    <Version>0.0.3.1</Version>
+    <Version>0.0.3.4</Version>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/denpadokei/Voiceroid2Sharp</PackageProjectUrl>
     <Platforms>AnyCPU;x64;x86</Platforms>

@@ -205,6 +205,48 @@ namespace Voiceroid2Sharp.Standard
         public void Talk(params string[] messages) => this.Talk(messages.Select(x => new CommentEntity(x)));
         public Task TalkAsync(IEnumerable<CommentEntity> messages) => Task.Run(() => this.Talk(messages));
         public Task TalkAsync(params string[] messages) => Task.Run(() => this.Talk(messages));
+
+        /// <summary>
+		/// インストールされているボイスロイドコレクションを作成します。
+		/// </summary>
+		public void CreateActiveVoiceroidCollection()
+        {
+            while (this.ActiveVoiceroids.TryTake(out _)) {
+
+            }
+            foreach (var item in Enum.GetValues(typeof(IntPtrType)).OfType<IntPtrType>()) {
+                if (item == IntPtrType.Unknown) {
+                    continue;
+                }
+                var voicePath = "";
+                switch (item) {
+                    case IntPtrType.X64:
+                        voicePath = INSTALLFOLDERPATH_X64;
+                        break;
+                    case IntPtrType.X86:
+                        voicePath = INSTALLFOLDERPATH_X86;
+                        break;
+                    default:
+                        voicePath = INSTALLFOLDERPATH_X64;
+                        break;
+                }
+                if (Directory.Exists(voicePath)) {
+                    var directories = Directory.EnumerateDirectories(voicePath, "*", SearchOption.AllDirectories);
+                    if (!directories.Any()) {
+                        continue;
+                    }
+                    foreach (var directory in directories) {
+                        var directoryInfo = new DirectoryInfo(directory);
+                        if (this.Voiceroids.TryGetValue(directoryInfo.Name, out var value)) {
+                            this.ActiveVoiceroids.Add(new Voiceroid2Entity(value, ""));
+                        }
+                    }
+                }
+            }
+            if (this.ActiveVoiceroids.Any()) {
+                this.CurrentVoiceroid = this.ActiveVoiceroids.First().VoiceroidName;
+            }
+        }
         #endregion
         //ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
         #region // プライベートメソッド
@@ -245,48 +287,6 @@ namespace Voiceroid2Sharp.Standard
             }
             catch (Exception e) {
                 Debug.WriteLine(e);
-            }
-        }
-
-        /// <summary>
-		/// インストールされているボイスロイドコレクションを作成します。
-		/// </summary>
-		private void CreateActiveVoiceroidCollection()
-        {
-            while (this.ActiveVoiceroids.TryTake(out _)) {
-
-            }
-            foreach (var item in Enum.GetValues(typeof(IntPtrType)).OfType<IntPtrType>()) {
-                if (item == IntPtrType.Unknown) {
-                    continue;
-                }
-                var voicePath = "";
-                switch (this.currentExecuteApp) {
-                    case IntPtrType.X64:
-                        voicePath = INSTALLFOLDERPATH_X64;
-                        break;
-                    case IntPtrType.X86:
-                        voicePath = INSTALLFOLDERPATH_X86;
-                        break;
-                    default:
-                        voicePath = INSTALLFOLDERPATH_X64;
-                        break;
-                }
-                if (Directory.Exists(voicePath)) {
-                    var directories = Directory.EnumerateDirectories(voicePath);
-                    if (!directories.Any()) {
-                        continue;
-                    }
-                    foreach (var directory in directories) {
-                        var directoryInfo = new DirectoryInfo(directory);
-                        if (this.Voiceroids.TryGetValue(directoryInfo.Name, out var value)) {
-                            this.ActiveVoiceroids.Add(new Voiceroid2Entity(value, ""));
-                        }
-                    }
-                }
-            }
-            if (this.ActiveVoiceroids.Any()) {
-                this.CurrentVoiceroid = this.ActiveVoiceroids.First().VoiceroidName;
             }
         }
 

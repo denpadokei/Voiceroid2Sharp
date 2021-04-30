@@ -16,19 +16,22 @@ namespace Voiceroid2Sharp.Test
     {
         private Voiceroid2 voiceroid2Sharp;
 
-        [SetUp]
-        public void Setup()
-        {
-            this.voiceroid2Sharp = new Voiceroid2();
-            this.voiceroid2Sharp.Connect(true);
-        }
-
         [Test]
         public void ReadOneHandredCommment()
         {
+            this.voiceroid2Sharp = new Voiceroid2();
+            this.voiceroid2Sharp.Connect(true);
             for (int i = 0; i < 100; i++) {
                 this.voiceroid2Sharp.Talk($"ƒRƒƒ“ƒg‚»‚Ì{i}");
             }
+        }
+
+        [Test]
+        public void CreateVoiceroids()
+        {
+            var voiceroid = new Voiceroid2();
+            voiceroid.CreateActiveVoiceroidCollection();
+            Assert.AreEqual(voiceroid.ActiveVoiceroids.Any(), true);
         }
     }
 }

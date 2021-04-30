@@ -20,6 +20,7 @@ namespace Voiceroid2Sharp.Standard.Interfaces
         void Connect(bool autoStart);
         Task ConnectAsync(bool autoStart);
         void Disconnect();
+        void CreateActiveVoiceroidCollection();
         void Talk(IEnumerable<CommentEntity> messages);
         void Talk(params string[] messages);
         Task TalkAsync(IEnumerable<CommentEntity> messages);
