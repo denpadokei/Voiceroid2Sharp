@@ -1,24 +1,29 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Copyright>(C) 2021@denpadokei</Copyright>
     <RepositoryUrl>https://github.com/denpadokei/Voiceroid2Sharp</RepositoryUrl>
     <NeutralLanguage>ja</NeutralLanguage>
-    <Version>0.0.2.0</Version>
+    <Version>0.0.3.0</Version>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/denpadokei/Voiceroid2Sharp</PackageProjectUrl>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="RM.Friendly.WPFStandardControls" Version="1.46.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="WindowsBase">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\dotnet\shared\Microsoft.WindowsDesktop.App\3.1.3\WindowsBase.dll</HintPath>
-    </Reference>
+    
   </ItemGroup>
 
   <ItemGroup>
@@ -26,6 +31,12 @@
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="WindowsBase">
+      <HintPath>..\..\..\..\..\..\Windows\Microsoft.NET\assembly\GAC_MSIL\WindowsBase\v4.0_4.0.0.0__31bf3856ad364e35\WindowsBase.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

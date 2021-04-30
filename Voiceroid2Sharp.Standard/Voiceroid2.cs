@@ -70,7 +70,19 @@ namespace Voiceroid2Sharp.Standard
         #region // パブリックメソッド
         public void Connect(bool autoStart)
         {
-            if (!File.Exists(VOICEROID2PATH)) {
+            var exePath = "";
+            switch (this.currentExecuteApp) {
+                case IntPtrType.X64:
+                    exePath = VOICEROID2PATH_X64;
+                    break;
+                case IntPtrType.X86:
+                    exePath = VOICEROID2PATH_X86;
+                    break;
+                default:
+                    exePath = VOICEROID2PATH_X64;
+                    break;
+            }
+            if (!File.Exists(exePath)) {
                 this.IsConnected = false;
                 Debug.WriteLine("VOICEROID2がインストールされていません。");
                 return;
@@ -244,7 +256,18 @@ namespace Voiceroid2Sharp.Standard
             while (this.ActiveVoiceroids.TryTake(out _)) {
 
             }
-            var voicePath = Path.Combine(INSTALLFOLDERPATH, "Voice");
+            var voicePath = "";
+            switch (this.currentExecuteApp) {
+                case IntPtrType.X64:
+                    voicePath = INSTALLFOLDERPATH_X64;
+                    break;
+                case IntPtrType.X86:
+                    voicePath = INSTALLFOLDERPATH_X86;
+                    break;
+                default:
+                    voicePath = INSTALLFOLDERPATH_X64;
+                    break;
+            }
             if (Directory.Exists(voicePath)) {
                 var directories = Directory.EnumerateDirectories(voicePath);
                 if (!directories.Any()) {
@@ -269,7 +292,17 @@ namespace Voiceroid2Sharp.Standard
 		private Process LaunchVoiceroid2()
         {
             using (var p = new Process()) {
-                p.StartInfo.FileName = VOICEROID2PATH;
+                switch (this.currentExecuteApp) {
+                    case IntPtrType.X64:
+                        p.StartInfo.FileName = VOICEROID2PATH_X64;
+                        break;
+                    case IntPtrType.X86:
+                        p.StartInfo.FileName = VOICEROID2PATH_X86;
+                        break;
+                    default:
+                        p.StartInfo.FileName = VOICEROID2PATH_X64;
+                        break;
+                }
                 p.Start();
                 p.WaitForInputIdle();
                 Debug.WriteLine("VOICEROID2を起動中です。");
@@ -277,11 +310,23 @@ namespace Voiceroid2Sharp.Standard
                 return p;
             }
         }
+
+        private void SetAppType()
+        {
+            if (IntPtr.Size == 4) {
+                this.currentExecuteApp = IntPtrType.X86;
+            }
+            else if (IntPtr.Size == 8) {
+                this.currentExecuteApp = IntPtrType.X64;
+            }
+        }
         #endregion
         //ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
         #region // メンバ変数
-        private static readonly string INSTALLFOLDERPATH = @"C:\Program Files (x86)\AHS\VOICEROID2";
-        private static readonly string VOICEROID2PATH = @"C:\Program Files (x86)\AHS\VOICEROID2\VoiceroidEditor.exe";
+        private static readonly string INSTALLFOLDERPATH_X86 = @"C:\Program Files (x86)\AHS\VOICEROID2";
+        private static readonly string VOICEROID2PATH_X86 = @"C:\Program Files (x86)\AHS\VOICEROID2\VoiceroidEditor.exe";
+        private static readonly string INSTALLFOLDERPATH_X64 = @"C:\Program Files\AHS\VOICEROID2";
+        private static readonly string VOICEROID2PATH_X64 = @"C:\Program Files\AHS\VOICEROID2\VoiceroidEditor.exe";
         private static readonly string TALKEDITERVIEWNAME = "AI.Talk.Editor.TextEditView";
         private static readonly int MAXRETRYCOUNT = 5;
 
@@ -295,12 +340,15 @@ namespace Voiceroid2Sharp.Standard
         private bool disposedValue;
         private dynamic _textEditViewDataContext;
         private IWPFDependencyObjectCollection<DependencyObject> _textViewCollection;
+        private IntPtrType currentExecuteApp;
         private static readonly object _lockObject = new object();
         #endregion
         //ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
         #region // 構築・破棄
         public Voiceroid2()
         {
+            this.SetAppType();
+
             var voiceroidsDic = new Dictionary<string, string>();
 
             voiceroidsDic.Add("yukari_44", "結月ゆかり(v1)");
@@ -362,5 +410,12 @@ namespace Voiceroid2Sharp.Standard
             GC.SuppressFinalize(this);
         }
         #endregion
+        //ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*ﾟ+｡｡+ﾟ*｡+ﾟ ﾟ+｡*
+        public enum IntPtrType
+        {
+            Unknown,
+            X64,
+            X86
+        }
     }
 }
