@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Voiceroid2Sharp.Test", "Voi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Voiceroid2Sharp.Standard", "Voiceroid2Sharp.Standard\Voiceroid2Sharp.Standard.csproj", "{0BC3E102-1C67-4558-AB9F-0A4735FA5DDE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Voiceroid2Sharp.Core", "Voiceroid2Sharp.Core\Voiceroid2Sharp.Core.csproj", "{80D2429B-A624-4FE3-A4B0-0361F94ADD00}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,18 @@ Global
 		{0BC3E102-1C67-4558-AB9F-0A4735FA5DDE}.Release|x64.Build.0 = Release|x64
 		{0BC3E102-1C67-4558-AB9F-0A4735FA5DDE}.Release|x86.ActiveCfg = Release|Any CPU
 		{0BC3E102-1C67-4558-AB9F-0A4735FA5DDE}.Release|x86.Build.0 = Release|Any CPU
+		{80D2429B-A624-4FE3-A4B0-0361F94ADD00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80D2429B-A624-4FE3-A4B0-0361F94ADD00}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80D2429B-A624-4FE3-A4B0-0361F94ADD00}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{80D2429B-A624-4FE3-A4B0-0361F94ADD00}.Debug|x64.Build.0 = Debug|Any CPU
+		{80D2429B-A624-4FE3-A4B0-0361F94ADD00}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{80D2429B-A624-4FE3-A4B0-0361F94ADD00}.Debug|x86.Build.0 = Debug|Any CPU
+		{80D2429B-A624-4FE3-A4B0-0361F94ADD00}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80D2429B-A624-4FE3-A4B0-0361F94ADD00}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80D2429B-A624-4FE3-A4B0-0361F94ADD00}.Release|x64.ActiveCfg = Release|Any CPU
+		{80D2429B-A624-4FE3-A4B0-0361F94ADD00}.Release|x64.Build.0 = Release|Any CPU
+		{80D2429B-A624-4FE3-A4B0-0361F94ADD00}.Release|x86.ActiveCfg = Release|Any CPU
+		{80D2429B-A624-4FE3-A4B0-0361F94ADD00}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

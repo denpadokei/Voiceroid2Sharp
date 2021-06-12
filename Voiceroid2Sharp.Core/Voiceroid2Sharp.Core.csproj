@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Version>0.1.0.0</Version>
+    <Copyright>(C) 2021@denpadokei</Copyright>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/denpadokei/Voiceroid2Sharp</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/denpadokei/Voiceroid2Sharp</RepositoryUrl>
+    <NeutralLanguage>ja</NeutralLanguage>
+    <AssemblyVersion>0.0.1.0</AssemblyVersion>
+    <FileVersion>0.0.1.0</FileVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Codeer.Friendly" Version="2.6.1" />
+    <PackageReference Include="RM.Friendly.WPFStandardControls" Version="1.46.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>

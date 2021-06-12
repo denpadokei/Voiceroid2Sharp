@@ -39,7 +39,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Voiceroid2Sharp.Standard\Voiceroid2Sharp.Standard.csproj" />
+    <ProjectReference Include="..\Voiceroid2Sharp.Core\Voiceroid2Sharp.Core.csproj" />
   </ItemGroup>
 
 </Project>

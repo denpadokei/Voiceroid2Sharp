@@ -8,7 +8,7 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
-using Voiceroid2Sharp.Standard;
+using Voiceroid2Sharp.Core;
 
 namespace Voiceroid2Sharp.Test
 {
